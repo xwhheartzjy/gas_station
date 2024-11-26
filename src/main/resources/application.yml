@@ -1,0 +1,17 @@
+server:
+  port: 8080
+spring:
+  datasource:
+    dynamic:
+      primary: master # 设置默认数据源
+      datasource:
+        master: # 主数据源
+          url: jdbc:mysql://localhost:3306/master_db?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+          username: root
+          password: root
+          driver-class-name: com.mysql.cj.jdbc.Driver
+        slave: # 从数据源
+          url: jdbc:mysql://localhost:3306/slave_db?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+          username: root
+          password: root
+          driver-class-name: com.mysql.cj.jdbc.Driver
