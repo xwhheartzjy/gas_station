@@ -3,6 +3,7 @@ package org.codec.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.codec.entity.GasStation;
 import org.codec.service.GasStationService;
+import org.codec.util.JsonData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,6 +28,6 @@ public class GasStationController {
             @RequestParam(required = false) String order_by) {
 
         // 调用服务层获取分页数据
-        return gasStationService.getGasStationsList(page_no, size, station_id, gasoline_type, distance_type, order_by);
+        return JsonData.buildSuccess(gasStationService.getGasStationsList(page_no, size, station_id, gasoline_type, distance_type, order_by));
     }
 }

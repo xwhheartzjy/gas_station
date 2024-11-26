@@ -1,4 +1,4 @@
-package org.codec.service
+package org.codec.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.codec.entity.GasPrice;

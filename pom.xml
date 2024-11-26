@@ -79,6 +79,12 @@
       <artifactId>mybatis-plus-join-boot-starter</artifactId> <!-- MyBatis 联表查询 -->
       <version>1.4.6</version>
     </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.16</version>
+      <scope>provided</scope>
+    </dependency>
 
     <!-- Spring Boot Starter Test (For testing, optional) -->
     <dependency>
