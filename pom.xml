@@ -86,6 +86,12 @@
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
+
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>8.0.33</version>  <!-- 确保使用适合的版本 -->
+    </dependency>
   </dependencies>
   <!--module不用添加打包版本信息-->
   <build>
