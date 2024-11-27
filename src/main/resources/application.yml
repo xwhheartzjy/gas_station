@@ -15,3 +15,11 @@ spring:
           username: root
           password: 123456
           driver-class-name: com.mysql.cj.jdbc.Driver
+jwt:
+  header: Authorization
+  # 令牌前缀
+  token-start-with: Bearer
+  # 使用Base64对该令牌进行编码
+  base64-secret: Ay6tP1aHEyHLn8RffQsVjPIf+y0a0aO/4gdAf1u5qFXjx/rtF1O9TX7Xe3AbAlz8hA7oRxFT9lWfsc5d9u5cJg==
+  # 令牌过期时间 此处单位/毫秒
+  token-validity-in-seconds: 14400000
