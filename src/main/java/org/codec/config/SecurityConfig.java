@@ -6,8 +6,16 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.util.Collections;
 
 /**
  * @Author cross
@@ -51,5 +59,23 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(); // 密码加密
+    }
+
+    @Bean
+    protected UserDetailsService userDetailsService() {
+        return username -> {
+            // 自定义用户加载逻辑
+            if ("admin".equals(username)) {
+                return new User("admin",
+                        new BCryptPasswordEncoder().encode("123456"),
+                        Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
+            }
+            throw new UsernameNotFoundException("User not found");
+        };
     }
 }

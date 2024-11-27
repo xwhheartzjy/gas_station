@@ -3,6 +3,7 @@ package org.codec.util;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.codec.enums.BizCodeEnum;
 
 
 
