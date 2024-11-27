@@ -1,5 +1,6 @@
 package org.codec.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
@@ -8,10 +9,8 @@ import java.util.Date;
 
 @TableName("gas_station")
 public class GasStation {
-
-    @TableId
-    private Long stationId; // 站点ID
-
+    @TableId(type = IdType.AUTO)
+    private Long id; // 站点ID
     private String name; // 油站名称
     private String address; // 地址
     private BigDecimal longitude; // 经度
@@ -21,20 +20,27 @@ public class GasStation {
     private String businessEndTime; // 营业结束时间
     private String stationType; // 油站类型
     private String carWash; // 是否提供洗车服务（0=否,1=是）
-    private Long createDept; // 创建部门
     private Long createBy; // 创建人
     private Date createTime; // 创建时间
     private Long updateBy; // 更新人
     private Date updateTime; // 更新时间
-    private String tenantId; // 租户号
     private String delFlag; // 删除标志（0代表存在 2代表删除）
+    private String userId;
 
-    public Long getStationId() {
-        return stationId;
+    public String getUserId() {
+        return userId;
     }
 
-    public void setStationId(Long stationId) {
-        this.stationId = stationId;
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -109,14 +115,6 @@ public class GasStation {
         this.carWash = carWash;
     }
 
-    public Long getCreateDept() {
-        return createDept;
-    }
-
-    public void setCreateDept(Long createDept) {
-        this.createDept = createDept;
-    }
-
     public Long getCreateBy() {
         return createBy;
     }
@@ -147,14 +145,6 @@ public class GasStation {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
-    }
-
-    public String getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(String tenantId) {
-        this.tenantId = tenantId;
     }
 
     public String getDelFlag() {

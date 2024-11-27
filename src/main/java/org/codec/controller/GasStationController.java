@@ -2,13 +2,11 @@ package org.codec.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.codec.entity.GasStation;
+import org.codec.request.AddGasStationRequest;
 import org.codec.service.GasStationService;
 import org.codec.util.JsonData;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/gas_station")
@@ -33,5 +31,17 @@ public class GasStationController {
     @GetMapping("/list")
     public JsonData getStation(){
         return JsonData.buildSuccess(gasStationService.getStations());
+    }
+
+    @GetMapping("/list_by_user")
+    public JsonData listStationByUser(@RequestParam(required = true,name = "user_id") String userId) {
+        return JsonData.buildSuccess(gasStationService.listStationByUser(userId));
+    }
+
+    @PostMapping("/add")
+    public JsonData add(@RequestBody AddGasStationRequest request) {
+
+        return JsonData.buildSuccess();
+
     }
 }

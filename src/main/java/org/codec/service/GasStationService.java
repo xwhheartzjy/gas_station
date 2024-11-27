@@ -23,6 +23,12 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         GasStation targetStation = gasStationMapper.selectById(1);
         return targetStation;
     }
+
+    public List<GasStation> listStationByUser(String userId) {
+        QueryWrapper<GasStation> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id",userId).eq("del_flag",0);
+        return gasStationMapper.selectList(queryWrapper);
+    }
 //
 //    @Autowired
 //    private GasPriceMapper gasPriceMapper;

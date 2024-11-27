@@ -1,5 +1,6 @@
 package org.codec.controller;
 import org.codec.entity.SysUser;
+import org.codec.enums.BizCodeEnum;
 import org.codec.model.LoginRequest;
 import org.codec.service.SysUserService;
 import org.codec.util.JsonData;
@@ -30,16 +31,12 @@ public class AuthController {
 
 //        SysUser user = sysUserService.getUserByUsernameAndPassword(request.getUsername(), request.getPassword());
 //        if (user == null) {
-//            return ResponseEntity.status(403).body("Invalid credentials");
+//            return JsonData.buildResult(BizCodeEnum.ACCOUNT_PWD_ERROR);
 //        }
-//
-//        String token = JwtUtil.generateToken(request.getUsername());
-//        return ResponseEntity.ok(token);
 
         Map map = new HashMap();
         map.put("user",request.getUsername());
         map.put("password",request.getPassword());
         return JsonData.buildSuccess(jwtTokenUtils.createToken(map));
-
     }
 }
