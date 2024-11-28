@@ -6,6 +6,7 @@ import org.codec.entity.GasPrice;
 import org.codec.entity.GasStation;
 import org.codec.mapper.GasPriceMapper;
 import org.codec.mapper.GasStationMapper;
+import org.codec.request.AddGasStationRequest;
 import org.codec.util.HaversineUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,15 +20,14 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
     @Autowired
     private GasStationMapper gasStationMapper;
 
-    public GasStation getStations() {
-        GasStation targetStation = gasStationMapper.selectById(1);
-        return targetStation;
-    }
-
     public List<GasStation> listStationByUser(String userId) {
         QueryWrapper<GasStation> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id",userId).eq("del_flag",0);
         return gasStationMapper.selectList(queryWrapper);
+    }
+
+    public void addGasStation(AddGasStationRequest request) {
+        
     }
 //
 //    @Autowired

@@ -28,10 +28,6 @@ public class GasStationController {
 //        // 调用服务层获取分页数据
 //        return JsonData.buildSuccess(gasStationService.getGasStationsList(page_no, size, station_id, gasoline_type, distance_type, order_by));
 //    }
-    @GetMapping("/list")
-    public JsonData getStation(){
-        return JsonData.buildSuccess(gasStationService.getStations());
-    }
 
     @GetMapping("/list_by_user")
     public JsonData listStationByUser(@RequestParam(required = true,name = "user_id") String userId) {
