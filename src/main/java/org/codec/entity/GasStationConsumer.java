@@ -11,7 +11,7 @@ import java.util.Date;
 
 @TableName("gas_station")
 @Data
-public class GasStation {
+public class GasStationConsumer {
     @TableId(type = IdType.AUTO)
     @TableField("station_id")
     private Long stationId; // 站点ID

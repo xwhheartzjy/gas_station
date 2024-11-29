@@ -4,7 +4,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.codec.entity.GasPrice;
 import org.codec.entity.GasStation;
+import org.codec.entity.GasStationConsumer;
 import org.codec.mapper.GasPriceMapper;
+import org.codec.mapper.GasStationConsumerMapper;
 import org.codec.mapper.GasStationMapper;
 import org.codec.request.AddGasStationRequest;
 import org.codec.util.HaversineUtil;
@@ -19,15 +21,17 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
 
     @Autowired
     private GasStationMapper gasStationMapper;
+    @Autowired
+    private GasStationConsumerMapper gasStationConsumerMapper;
 
-    public List<GasStation> listStationByUser(String userId) {
-        QueryWrapper<GasStation> queryWrapper = new QueryWrapper<>();
+    public List<GasStationConsumer> listStationByUser(String userId) {
+        QueryWrapper<GasStationConsumer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id",userId).eq("del_flag",0);
-        return gasStationMapper.selectList(queryWrapper);
+        return gasStationConsumerMapper.selectList(queryWrapper);
     }
 
     public void addGasStation(AddGasStationRequest request) {
-        GasStation gasStation = new GasStation();
+        GasStationConsumer gasStation = new GasStationConsumer();
         gasStation.setBusinessEndTime(request.getBusinessEndTime());
         gasStation.setName(request.getGasStationName());
         gasStation.setCarWash(request.getCarWash());
@@ -35,7 +39,7 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         gasStation.setBusinessStartTime(request.getBusinessStartTime());
         gasStation.setLatitude(request.getLatitude());
         gasStation.setLongitude(request.getLongitude());
-        gasStationMapper.insert(gasStation);
+        gasStationConsumerMapper.insert(gasStation);
 
     }
 //
