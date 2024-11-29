@@ -1,6 +1,7 @@
 package org.codec.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
@@ -10,37 +11,45 @@ import java.util.Date;
 @TableName("gas_station")
 public class GasStation {
     @TableId(type = IdType.AUTO)
-    private Long id; // 站点ID
+    @TableField("station_id")
+    private Long stationId; // 站点ID
+    @TableField("name")
     private String name; // 油站名称
+    @TableField("address")
     private String address; // 地址
-    private BigDecimal longitude; // 经度
+    @TableField("longitude")
+    private BigDecimal longitude;
+    @TableField("latitude")// 经度
     private BigDecimal latitude; // 纬度
+    @TableField("area_id")
     private Long areaId; // 区域ID
-    private String businessStartTime; // 营业开始时间
-    private String businessEndTime; // 营业结束时间
+    @TableField("business_start_time")
+    private Date businessStartTime; // 营业开始时间
+    @TableField("business_end_time")
+    private Date businessEndTime; // 营业结束时间
+    @TableField("station_type")
     private String stationType; // 油站类型
-    private String carWash; // 是否提供洗车服务（0=否,1=是）
+    @TableField("car_wash")
+    private Integer carWash; // 是否提供洗车服务（0=否,1=是）
+    @TableField("create_by")
     private Long createBy; // 创建人
+    @TableField("create_time")
     private Date createTime; // 创建时间
+    @TableField("update_by")
     private Long updateBy; // 更新人
+    @TableField("update_time")
     private Date updateTime; // 更新时间
-    private String delFlag; // 删除标志（0代表存在 2代表删除）
-    private String userId;
+    @TableField("del_flag")
+    private Integer delFlag; // 删除标志（0代表存在 2代表删除）
+    @TableField("user_id")
+    private Long userId;
 
-    public String getUserId() {
-        return userId;
+    public Long getStationId() {
+        return stationId;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
+    public void setStationId(Long stationId) {
+        this.stationId = stationId;
     }
 
     public String getName() {
@@ -83,19 +92,19 @@ public class GasStation {
         this.areaId = areaId;
     }
 
-    public String getBusinessStartTime() {
+    public Date getBusinessStartTime() {
         return businessStartTime;
     }
 
-    public void setBusinessStartTime(String businessStartTime) {
+    public void setBusinessStartTime(Date businessStartTime) {
         this.businessStartTime = businessStartTime;
     }
 
-    public String getBusinessEndTime() {
+    public Date getBusinessEndTime() {
         return businessEndTime;
     }
 
-    public void setBusinessEndTime(String businessEndTime) {
+    public void setBusinessEndTime(Date businessEndTime) {
         this.businessEndTime = businessEndTime;
     }
 
@@ -107,11 +116,11 @@ public class GasStation {
         this.stationType = stationType;
     }
 
-    public String getCarWash() {
+    public Integer getCarWash() {
         return carWash;
     }
 
-    public void setCarWash(String carWash) {
+    public void setCarWash(Integer carWash) {
         this.carWash = carWash;
     }
 
@@ -147,11 +156,19 @@ public class GasStation {
         this.updateTime = updateTime;
     }
 
-    public String getDelFlag() {
+    public Integer getDelFlag() {
         return delFlag;
     }
 
-    public void setDelFlag(String delFlag) {
+    public void setDelFlag(Integer delFlag) {
         this.delFlag = delFlag;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 }

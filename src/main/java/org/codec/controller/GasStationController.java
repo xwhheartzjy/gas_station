@@ -36,7 +36,7 @@ public class GasStationController {
 
     @PostMapping("/add")
     public JsonData add(@RequestBody AddGasStationRequest request) {
-
+        gasStationService.addGasStation(request);
         return JsonData.buildSuccess();
 
     }

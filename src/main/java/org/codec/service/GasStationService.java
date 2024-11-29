@@ -27,7 +27,16 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
     }
 
     public void addGasStation(AddGasStationRequest request) {
-        
+        GasStation gasStation = new GasStation();
+        gasStation.setBusinessEndTime(request.getBusinessEndTime());
+        gasStation.setName(request.getGasStationName());
+        gasStation.setCarWash(request.getCarWash());
+        gasStation.setStationType(request.getStationType());
+        gasStation.setBusinessStartTime(request.getBusinessStartTime());
+        gasStation.setLatitude(request.getLatitude());
+        gasStation.setLongitude(request.getLongitude());
+        gasStationMapper.insert(gasStation);
+
     }
 //
 //    @Autowired
