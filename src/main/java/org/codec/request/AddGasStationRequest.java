@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Date;
 @Data
 public class AddGasStationRequest {
@@ -22,14 +24,17 @@ public class AddGasStationRequest {
 
     @JsonProperty("business_start_time")
     @JsonFormat(pattern = "HH:mm:ss")
-    private Date businessStartTime;
+    private LocalTime businessStartTime;
 
     @JsonProperty("business_end_time")
     @JsonFormat(pattern = "HH:mm:ss")
-    private Date businessEndTime;
+    private LocalTime businessEndTime;
 
     @JsonProperty("car_wash")
     private Integer carWash;
+
+    @JsonProperty("user_id")
+    private Long userId;
 
 
 

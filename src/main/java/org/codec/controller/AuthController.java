@@ -37,6 +37,7 @@ public class AuthController {
         Map map = new HashMap();
         map.put("user",request.getUsername());
         map.put("password",request.getPassword());
+        map.put("userId","123456789");
         return JsonData.buildSuccess(jwtTokenUtils.createToken(map));
     }
 }

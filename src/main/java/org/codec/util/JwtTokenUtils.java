@@ -5,6 +5,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.codec.config.JwtSecurityProperties;
+import org.codec.entity.SysUser;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -76,6 +77,24 @@ public class JwtTokenUtils implements InitializingBean {
         User principal = new User(map.get("user").toString(), map.get("password").toString(), authorities);
 
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
+    }
+
+    public SysUser getAuthenticationUser(String token) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(key)
+                .parseClaimsJws(token)
+                .getBody();
+
+        Collection<? extends GrantedAuthority> authorities =
+                Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
+                        .map(SimpleGrantedAuthority::new)
+                        .collect(Collectors.toList());
+
+        HashMap map =(HashMap) claims.get("auth");
+        SysUser user = new SysUser();
+        user.setUserName(map.get("user").toString());
+        user.setUserId(Long.valueOf(map.get("userId").toString()));
+        return user;
     }
 
     public boolean validateToken(String authToken) {

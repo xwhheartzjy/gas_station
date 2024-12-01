@@ -1,15 +1,21 @@
 package org.codec.service;
+import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.codec.common.RequestContext;
+import org.codec.dto.GasStationDTO;
 import org.codec.entity.GasPrice;
 import org.codec.entity.GasStation;
 import org.codec.entity.GasStationConsumer;
 import org.codec.mapper.GasPriceMapper;
 import org.codec.mapper.GasStationConsumerMapper;
 import org.codec.mapper.GasStationMapper;
+import org.codec.mapper.map_struct.GasStationMapStructMapper;
 import org.codec.request.AddGasStationRequest;
 import org.codec.util.HaversineUtil;
+import org.codec.util.JwtTokenUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,10 +30,18 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
     @Autowired
     private GasStationConsumerMapper gasStationConsumerMapper;
 
-    public List<GasStationConsumer> listStationByUser(String userId) {
+    @Autowired
+    private JwtTokenUtils jwtTokenUtils;
+
+    public List<GasStationDTO> listStationByUser(String userId) {
         QueryWrapper<GasStationConsumer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id",userId).eq("del_flag",0);
-        return gasStationConsumerMapper.selectList(queryWrapper);
+        List<GasStationConsumer> gasStationConsumers = gasStationConsumerMapper.selectList(queryWrapper);
+        List<GasStationDTO> result = new ArrayList<>();
+        for (GasStationConsumer gasStationConsumer : gasStationConsumers) {
+            result.add(GasStationMapStructMapper.INSTANCE.toDTO(gasStationConsumer));
+        }
+        return result;
     }
 
     public void addGasStation(AddGasStationRequest request) {
@@ -39,6 +53,9 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         gasStation.setBusinessStartTime(request.getBusinessStartTime());
         gasStation.setLatitude(request.getLatitude());
         gasStation.setLongitude(request.getLongitude());
+        gasStation.setCreateBy(RequestContext.getCurrentUser().getUserId());
+        gasStation.setCreateTime(DateUtil.date());
+        gasStation.setUserId(request.getUserId());
         gasStationConsumerMapper.insert(gasStation);
 
     }

@@ -4,9 +4,12 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Date;
 
 @TableName("gas_station")
@@ -26,9 +29,9 @@ public class GasStationConsumer {
     @TableField("area_id")
     private Long areaId; // 区域ID
     @TableField("business_start_time")
-    private Date businessStartTime; // 营业开始时间
+    private LocalTime businessStartTime; // 营业开始时间
     @TableField("business_end_time")
-    private Date businessEndTime; // 营业结束时间
+    private LocalTime businessEndTime; // 营业结束时间
     @TableField("station_type")
     private String stationType; // 油站类型
     @TableField("car_wash")
