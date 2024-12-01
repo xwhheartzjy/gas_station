@@ -2,7 +2,9 @@ package org.codec.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.codec.entity.GasStation;
+import org.codec.enums.BizCodeEnum;
 import org.codec.request.AddGasStationRequest;
+import org.codec.request.DeleteGasStationRequest;
 import org.codec.service.GasStationService;
 import org.codec.util.JsonData;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +40,21 @@ public class GasStationController {
     public JsonData add(@RequestBody AddGasStationRequest request) {
         gasStationService.addGasStation(request);
         return JsonData.buildSuccess();
-
     }
+    @PostMapping("/delete")
+    public JsonData add(@RequestBody DeleteGasStationRequest request) {
+        gasStationService.deleteGasStation(request.getStationId());
+        return JsonData.buildSuccess();
+    }
+    @PostMapping("/update")
+    public JsonData update(@RequestBody AddGasStationRequest request) {
+        gasStationService.updateGasStation(request);
+        return JsonData.buildSuccess();
+    }
+    @GetMapping("/detail")
+    public JsonData detail(@RequestParam(name = "station_id") Long stationId) {
+        gasStationService.getStationDetail(stationId);
+        return JsonData.buildSuccess();
+    }
+
 }

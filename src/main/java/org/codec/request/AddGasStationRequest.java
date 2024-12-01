@@ -36,6 +36,15 @@ public class AddGasStationRequest {
     @JsonProperty("user_id")
     private Long userId;
 
+    @JsonProperty("address")
+    private String address;
+
+    @JsonProperty("area_id")
+    private Long areaId;
+
+    @JsonProperty("station_id")
+    private Long stationId;
+
 
 
 

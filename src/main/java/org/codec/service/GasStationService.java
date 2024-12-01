@@ -1,4 +1,5 @@
 package org.codec.service;
+
 import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -11,6 +12,7 @@ import org.codec.entity.GasStationConsumer;
 import org.codec.mapper.GasPriceMapper;
 import org.codec.mapper.GasStationConsumerMapper;
 import org.codec.mapper.GasStationMapper;
+import org.codec.mapper.map_struct.GasAreaMapStructMapper;
 import org.codec.mapper.map_struct.GasStationMapStructMapper;
 import org.codec.request.AddGasStationRequest;
 import org.codec.util.HaversineUtil;
@@ -35,7 +37,7 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
 
     public List<GasStationDTO> listStationByUser(String userId) {
         QueryWrapper<GasStationConsumer> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_id",userId).eq("del_flag",0);
+        queryWrapper.eq("user_id", userId).eq("del_flag", 0);
         List<GasStationConsumer> gasStationConsumers = gasStationConsumerMapper.selectList(queryWrapper);
         List<GasStationDTO> result = new ArrayList<>();
         for (GasStationConsumer gasStationConsumer : gasStationConsumers) {
@@ -56,8 +58,37 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         gasStation.setCreateBy(RequestContext.getCurrentUser().getUserId());
         gasStation.setCreateTime(DateUtil.date());
         gasStation.setUserId(request.getUserId());
+        gasStation.setAddress(request.getAddress());
+        gasStation.setAreaId(request.getAreaId());
         gasStationConsumerMapper.insert(gasStation);
+    }
 
+    public void deleteGasStation(Long station_id) {
+        gasStationConsumerMapper.deleteById(station_id);
+    }
+
+    public void updateGasStation(AddGasStationRequest request) {
+        GasStationConsumer gasStation = new GasStationConsumer();
+        gasStation.setBusinessEndTime(request.getBusinessEndTime());
+        gasStation.setName(request.getGasStationName());
+        gasStation.setCarWash(request.getCarWash());
+        gasStation.setStationType(request.getStationType());
+        gasStation.setBusinessStartTime(request.getBusinessStartTime());
+        gasStation.setLatitude(request.getLatitude());
+        gasStation.setLongitude(request.getLongitude());
+        gasStation.setAddress(request.getAddress());
+        gasStation.setAreaId(request.getAreaId());
+        gasStation.setUpdateBy(RequestContext.getCurrentUser().getUserId());
+        gasStation.setUpdateTime(DateUtil.date());
+        gasStation.setStationId(request.getStationId());
+        gasStationConsumerMapper.updateById(gasStation);
+    }
+
+    public GasStationDTO getStationDetail(Long stationId) {
+        GasStationConsumer gasStationConsumer = gasStationConsumerMapper.selectById(stationId);
+        GasStationDTO gasStationDTO = new GasStationDTO();
+        gasStationDTO = GasStationMapStructMapper.INSTANCE.toDTO(gasStationConsumer);
+        return gasStationDTO;
     }
 //
 //    @Autowired

@@ -33,7 +33,7 @@ public class JsonData {
      * @return
      */
     public static JsonData buildSuccess() {
-        return new JsonData(0, null, null);
+        return new JsonData(0, null, "success");
     }
 
     /**
@@ -42,7 +42,7 @@ public class JsonData {
      * @return
      */
     public static JsonData buildSuccess(Object data) {
-        return new JsonData(0, data, null);
+        return new JsonData(0, data, "success");
     }
 
     /**
