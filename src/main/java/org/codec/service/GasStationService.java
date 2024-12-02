@@ -1,17 +1,18 @@
 package org.codec.service;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.codec.common.RequestContext;
+import org.codec.dto.GasAreaDTO;
 import org.codec.dto.GasStationDTO;
+import org.codec.entity.GasArea;
 import org.codec.entity.GasPrice;
 import org.codec.entity.GasStation;
 import org.codec.entity.GasStationConsumer;
-import org.codec.mapper.GasPriceMapper;
-import org.codec.mapper.GasStationConsumerMapper;
-import org.codec.mapper.GasStationMapper;
+import org.codec.mapper.*;
 import org.codec.mapper.map_struct.GasAreaMapStructMapper;
 import org.codec.mapper.map_struct.GasStationMapStructMapper;
 import org.codec.request.AddGasStationRequest;
@@ -22,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 @Service
@@ -31,9 +33,11 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
     private GasStationMapper gasStationMapper;
     @Autowired
     private GasStationConsumerMapper gasStationConsumerMapper;
+    @Autowired
+    private GasStationUserMappingMapper gasStationUserMappingMapper;
 
     @Autowired
-    private JwtTokenUtils jwtTokenUtils;
+    private GasAreaMapper gasAreaMapper;
 
     public List<GasStationDTO> listStationByUser(String userId) {
         QueryWrapper<GasStationConsumer> queryWrapper = new QueryWrapper<>();
@@ -61,6 +65,15 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         gasStation.setAddress(request.getAddress());
         gasStation.setAreaId(request.getAreaId());
         gasStationConsumerMapper.insert(gasStation);
+        QueryWrapper<GasStation> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("longitude",request.getLongitude());
+        queryWrapper.eq("latitude",request.getLatitude());
+        queryWrapper.eq("del_flag",0);
+
+        List<GasStation> gasStations = gasStationMapper.selectList(queryWrapper);
+        if (CollectionUtil.isNotEmpty(gasStations)) {
+
+        }
     }
 
     public void deleteGasStation(Long station_id) {
@@ -86,9 +99,30 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
 
     public GasStationDTO getStationDetail(Long stationId) {
         GasStationConsumer gasStationConsumer = gasStationConsumerMapper.selectById(stationId);
+        LinkedList<GasAreaDTO> gasAreaDTOS = new LinkedList<>();
+        buildHierarchy(gasStationConsumer.getAreaId(),gasAreaDTOS);
         GasStationDTO gasStationDTO = new GasStationDTO();
         gasStationDTO = GasStationMapStructMapper.INSTANCE.toDTO(gasStationConsumer);
+        gasStationDTO.setAreas(gasAreaDTOS);
         return gasStationDTO;
+    }
+
+    private void buildHierarchy(Long areaId, List<GasAreaDTO> result) {
+        // 查询当前区域信息
+        GasArea currentArea = gasAreaMapper.selectById(areaId);
+        if (currentArea != null) {
+            // 添加当前区域到结果列表
+            GasAreaDTO gasAreaDTO = new GasAreaDTO();
+            gasAreaDTO.setArea_name(currentArea.getAreaName());
+            gasAreaDTO.setArea_id(currentArea.getAreaId());
+
+            result.add(gasAreaDTO);
+
+            // 如果还有父节点，递归调用
+            if (currentArea.getParentId() != null) {
+                buildHierarchy(currentArea.getParentId(), result);
+            }
+        }
     }
 //
 //    @Autowired

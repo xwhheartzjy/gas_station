@@ -53,8 +53,7 @@ public class GasStationController {
     }
     @GetMapping("/detail")
     public JsonData detail(@RequestParam(name = "station_id") Long stationId) {
-        gasStationService.getStationDetail(stationId);
-        return JsonData.buildSuccess();
+        return JsonData.buildSuccess(gasStationService.getStationDetail(stationId));
     }
 
 }

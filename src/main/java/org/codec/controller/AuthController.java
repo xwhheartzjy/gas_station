@@ -1,4 +1,5 @@
 package org.codec.controller;
+import org.codec.dto.GasUserDTO;
 import org.codec.entity.SysUser;
 import org.codec.enums.BizCodeEnum;
 import org.codec.model.LoginRequest;
@@ -29,15 +30,19 @@ public class AuthController {
     @PostMapping("/login")
     public JsonData login(@RequestBody LoginRequest request) {
 
-//        SysUser user = sysUserService.getUserByUsernameAndPassword(request.getUsername(), request.getPassword());
-//        if (user == null) {
-//            return JsonData.buildResult(BizCodeEnum.ACCOUNT_PWD_ERROR);
-//        }
+        SysUser user = sysUserService.getUserByUsernameAndPassword(request.getUsername(), request.getPassword());
+        if (user == null) {
+            return JsonData.buildResult(BizCodeEnum.ACCOUNT_PWD_ERROR);
+        }
 
         Map map = new HashMap();
         map.put("user",request.getUsername());
         map.put("password",request.getPassword());
         map.put("userId","123456789");
-        return JsonData.buildSuccess(jwtTokenUtils.createToken(map));
+        GasUserDTO gasUserDTO = new GasUserDTO();
+        gasUserDTO.setToken(jwtTokenUtils.createToken(map));
+        gasUserDTO.setUsername(request.getUsername());
+        gasUserDTO.setUsername(user.getUserName());
+        return JsonData.buildSuccess();
     }
 }

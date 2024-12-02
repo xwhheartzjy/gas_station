@@ -2,19 +2,11 @@ server:
   port: 8080
 spring:
   datasource:
-    dynamic:
-      primary: gas_station # 设置默认数据源
-      datasource:
-        gas_station: # 主数据源
-          url: jdbc:mysql://localhost:3306/gas_station?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
-          username: root
-          password: 123456
-          driver-class-name: com.mysql.cj.jdbc.Driver
-        gas_consumer: # 从数据源
-          url: jdbc:mysql://localhost:3306/gas_consumer?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
-          username: root
-          password: 123456
-          driver-class-name: com.mysql.cj.jdbc.Driver
+    gas_station: # 主数据源
+      url: jdbc:mysql://localhost:3306/gas_station?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+      username: root
+      password: root
+      driver-class-name: com.mysql.cj.jdbc.Driver
 jwt:
   header: Authorization
   # 令牌前缀

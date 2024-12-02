@@ -12,12 +12,12 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Date;
 
-@TableName("gas_station")
+@TableName("gas_station_user")
 @Data
 public class GasStationConsumer {
-    @TableId(type = IdType.AUTO)
-    @TableField("station_id")
-    private Long stationId; // 站点ID
+    @TableId(type = IdType.ASSIGN_UUID)
+    @TableField("id")
+    private String Id; // 站点ID
     @TableField("name")
     private String name; // 油站名称
     @TableField("address")

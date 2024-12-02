@@ -8,7 +8,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@DS("gas_consumer")
 public interface GasStationConsumerMapper extends BaseMapper<GasStationConsumer> {
 
 }
