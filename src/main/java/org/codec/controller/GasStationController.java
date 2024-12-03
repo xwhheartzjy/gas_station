@@ -19,7 +19,7 @@ public class GasStationController {
 
     @GetMapping("/list")
     public JsonData getGasStationList(
-            @RequestParam(required = false,name = "page_no",defaultValue = "0") int pageNo,
+            @RequestParam(required = false,name = "page_no",defaultValue = "1") int pageNo,
             @RequestParam(required = false,name = "size",defaultValue = "10") Integer size,
             @RequestParam(required = false,name = "station_id") String stationId,
             @RequestParam(required = false,name = "gasoline_type",defaultValue = "1") Integer gasolineType,
