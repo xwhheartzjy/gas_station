@@ -2,11 +2,10 @@ server:
   port: 8080
 spring:
   datasource:
-    gas_station: # 主数据源
-      url: jdbc:mysql://localhost:3306/gas_station?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
-      username: root
-      password: root
-      driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/gas_station?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
 jwt:
   header: Authorization
   # 令牌前缀

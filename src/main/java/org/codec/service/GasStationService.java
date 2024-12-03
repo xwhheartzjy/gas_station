@@ -8,10 +8,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.codec.common.RequestContext;
 import org.codec.dto.GasAreaDTO;
 import org.codec.dto.GasStationDTO;
-import org.codec.entity.GasArea;
-import org.codec.entity.GasPrice;
-import org.codec.entity.GasStation;
-import org.codec.entity.GasStationConsumer;
+import org.codec.dto.OGasStationDTO;
+import org.codec.entity.*;
 import org.codec.mapper.*;
 import org.codec.mapper.map_struct.GasAreaMapStructMapper;
 import org.codec.mapper.map_struct.GasStationMapStructMapper;
@@ -22,22 +20,24 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class GasStationService extends ServiceImpl<GasStationMapper, GasStation> {
-
+    @Autowired
+    private GasGdPricingDailyMapper gasGdPricingDailyMapper;
     @Autowired
     private GasStationMapper gasStationMapper;
     @Autowired
     private GasStationConsumerMapper gasStationConsumerMapper;
-    @Autowired
-    private GasStationUserMappingMapper gasStationUserMappingMapper;
 
     @Autowired
     private GasAreaMapper gasAreaMapper;
+    @Autowired
+    private OGasStationMapper oGasStationMapper;
+    @Autowired
+    private GasStationMappingMapper gasStationMappingMapper;
 
     public List<GasStationDTO> listStationByUser(String userId) {
         QueryWrapper<GasStationConsumer> queryWrapper = new QueryWrapper<>();
@@ -45,7 +45,12 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         List<GasStationConsumer> gasStationConsumers = gasStationConsumerMapper.selectList(queryWrapper);
         List<GasStationDTO> result = new ArrayList<>();
         for (GasStationConsumer gasStationConsumer : gasStationConsumers) {
-            result.add(GasStationMapStructMapper.INSTANCE.toDTO(gasStationConsumer));
+            GasStationDTO gasStationDTO = GasStationMapStructMapper.INSTANCE.toDTO(gasStationConsumer);
+            LinkedList<GasAreaDTO> gasAreaDTOS = new LinkedList<>();
+            buildHierarchy(gasStationConsumer.getAreaId(),gasAreaDTOS);
+            gasStationDTO.setAreas(gasAreaDTOS);
+            result.add(gasStationDTO);
+
         }
         return result;
     }
@@ -64,16 +69,15 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         gasStation.setUserId(request.getUserId());
         gasStation.setAddress(request.getAddress());
         gasStation.setAreaId(request.getAreaId());
-        gasStationConsumerMapper.insert(gasStation);
         QueryWrapper<GasStation> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("longitude",request.getLongitude());
         queryWrapper.eq("latitude",request.getLatitude());
         queryWrapper.eq("del_flag",0);
-
         List<GasStation> gasStations = gasStationMapper.selectList(queryWrapper);
         if (CollectionUtil.isNotEmpty(gasStations)) {
-
+            gasStation.setOriginStation(gasStations.get(0).getStationId());
         }
+        gasStationConsumerMapper.insert(gasStation);
     }
 
     public void deleteGasStation(Long station_id) {
@@ -93,11 +97,11 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         gasStation.setAreaId(request.getAreaId());
         gasStation.setUpdateBy(RequestContext.getCurrentUser().getUserId());
         gasStation.setUpdateTime(DateUtil.date());
-        gasStation.setStationId(request.getStationId());
+        gasStation.setId(request.getStationId());
         gasStationConsumerMapper.updateById(gasStation);
     }
 
-    public GasStationDTO getStationDetail(Long stationId) {
+    public GasStationDTO getStationDetail(String stationId) {
         GasStationConsumer gasStationConsumer = gasStationConsumerMapper.selectById(stationId);
         LinkedList<GasAreaDTO> gasAreaDTOS = new LinkedList<>();
         buildHierarchy(gasStationConsumer.getAreaId(),gasAreaDTOS);
@@ -124,50 +128,108 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
             }
         }
     }
-//
-//    @Autowired
-//    private GasPriceMapper gasPriceMapper;
-//
-//    // 获取加油站信息及油价
-//    public List<GasStation> getGasStationsList(Integer PageNo,Integer size,String stationId, Integer gasolineType, Integer distanceType,String orderBy) {
-//        // 1. 获取目标加油站的经纬度
-//        GasStation targetStation = gasStationMapper.selectById(stationId);
-//        if (targetStation == null) {
-//            return new ArrayList<>();
-//        }
-//
-//        double targetLat = targetStation.getLatitude().doubleValue();
-//        double targetLon = targetStation.getLongitude().doubleValue();
-//
-//        Page<GasStation> page = new Page<>(PageNo, size);
-//        // 2. 获取与目标站点在指定距离范围内的其他加油站
-//        QueryWrapper<GasStation> queryWrapper = new QueryWrapper<>();
-//        queryWrapper.ne("station_id", stationId); // 排除自己
-//        List<GasStation> nearbyStations = gasStationMapper.selectList(queryWrapper);
-//
-//        // 3. 筛选出距离符合要求的加油站
-//        List<GasStation> result = new ArrayList<>();
-//        for (GasStation station : nearbyStations) {
-//            double stationLat = station.getLatitude().doubleValue();
-//            double stationLon = station.getLongitude().doubleValue();
-//            double dist = HaversineUtil.getDistance(targetLat, targetLon, stationLat, stationLon);
-//
-//            if (distanceType == 0 && dist <= 3) {
-//
-//            }
-//
-//            // 根据距离类型筛选：3公里、5公里、10公里
-//            if ((distanceType == 0 && dist <= 3) ||
-//                    (distanceType == 1 && dist <= 5) ||
-//                    (distanceType == 2 && dist <= 10)) {
-//
-//                // 获取该加油站的油品价格
-//                List<GasPrice> gasPrices = gasPriceMapper.getPricesByStationId(station.getStationId(), gasolineType);
-//                station.setGasStationNearbyPrice(gasPrices);
-//                result.add(station);
-//            }
-//        }
-//
-//        return result;
-//    }
+
+
+
+    // 获取加油站信息及油价
+    public List<GasStation> getGasStationsList(Integer PageNo,Integer size,
+                                               String stationId, Integer gasolineType,
+                                               Integer distanceType,String orderBy,String sort) {
+        double distance;
+        if (distanceType == 0) {
+            distance = 3;
+        } else if (distanceType == 1){
+            distance =5;
+        }else if (distanceType == 2) {
+            distance = 10;
+        } else {
+            distance = 0;
+        }
+        // 1. 获取目标加油站的经纬度
+        GasStationConsumer targetStation = gasStationConsumerMapper.selectById(stationId);
+        if (targetStation == null) {
+            return new ArrayList<>();
+        }
+        if (targetStation.getOriginStation() == null) {
+            return new ArrayList<>();
+        }
+
+        double targetLat = targetStation.getLatitude().doubleValue();
+        double targetLon = targetStation.getLongitude().doubleValue();
+        QueryWrapper<GasStationMapping> gasStationMappingQueryWrapper = new QueryWrapper<>();
+        gasStationMappingQueryWrapper.eq("original_station_id",targetStation.getOriginStation());
+        gasStationMappingQueryWrapper.eq("del_flag",0);
+        GasStationMapping originGasStationMapping = gasStationMappingMapper.selectOne(gasStationMappingQueryWrapper);
+
+        // 2. 获取与目标站点在指定距离范围内的其他加油站
+        QueryWrapper<OGasStation> queryWrapper = new QueryWrapper<>();
+        // 排除自己
+        queryWrapper.ne("id", originGasStationMapping.getTargetStationId());
+        List<OGasStation> nearbyStations = oGasStationMapper.selectList(queryWrapper);
+        // 2. 根据半径过滤油站
+        nearbyStations = nearbyStations.stream()
+                .filter(station -> HaversineUtil.getDistance(
+                        targetLat, targetLon,
+                        Double.parseDouble(station.getLat()), Double.parseDouble(station.getLng())
+                ) <= distance)
+                .collect(Collectors.toList());
+
+        // 3. 根据油品类型找出最低价格的油站，并放到返回数组的最上面
+        nearbyStations = prioritizeByGasolineType(nearbyStations, gasolineType);
+
+
+        // 3. 筛选出距离符合要求的加油站
+        List<GasStation> result = new ArrayList<>();
+        for (OGasStation station : nearbyStations) {
+            double stationLat = Double.parseDouble(station.getLat());
+            double stationLon = Double.parseDouble(station.getLng());
+            double dist = HaversineUtil.getDistance(targetLat, targetLon, stationLat, stationLon);
+
+            // 根据距离类型筛选：3公里、5公里、10公里
+            if ((distanceType == 0 && dist <= 3) ||
+                    (distanceType == 1 && dist <= 5) ||
+                    (distanceType == 2 && dist <= 10)) {
+
+                // 获取该加油站的油品价格
+                QueryWrapper<GasGdPricingDaily> gasGdPricingDailyQueryWrapper = new QueryWrapper<>();
+                gasGdPricingDailyQueryWrapper.eq("oil_station_id",station.getId());
+                gasGdPricingDailyQueryWrapper.eq("pricing_date",DateUtil.date().toDateStr());
+                List<GasGdPricingDaily> pricingList = gasGdPricingDailyMapper.selectList(gasGdPricingDailyQueryWrapper);
+                if (pricingList.isEmpty()) {
+                    return Collections.emptyList(); // 没有数据
+                }
+            }
+        }
+
+        return result;
+    }
+    private List<OGasStation> prioritizeByGasolineType(List<OGasStation> stations, Integer gasolineType) {
+        // 根据油品类型 (油价) 排序，将最低价的油品排到最前面
+        return stations.stream()
+                .sorted(Comparator.comparingInt(station -> {
+                    switch (gasolineType) {
+                        case 92: return station.g();
+                        case 95: return station.getOil95Price();
+                        case 98: return station.getOil98Price();
+                        case 0: return station.getOil0Price();
+                        default: return Integer.MAX_VALUE; // 如果没有匹配的类型
+                    }
+                }))
+                .collect(Collectors.toList());
+    }
+
+    public List<OGasStation> filterStationsByDistance(List<OGasStation> gasStations, Integer distanceType, double targetLat, double targetLon) {
+        List<OGasStation> result = new ArrayList<>();
+        for (OGasStation station : gasStations) {
+            double stationLat = Double.parseDouble(station.getLat());
+            double stationLon = Double.parseDouble(station.getLng());
+            double dist = HaversineUtil.getDistance(targetLat, targetLon, stationLat, stationLon);
+            if ((distanceType == 0 && dist <= 3) ||
+                    (distanceType == 1 && dist <= 5) ||
+                    (distanceType == 2 && dist <= 10)) {
+                result.add(station);
+            }
+        }
+        return result;
+    }
 }

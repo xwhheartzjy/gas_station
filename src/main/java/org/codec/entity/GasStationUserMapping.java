@@ -15,6 +15,6 @@ public class GasStationUserMapping {
     private Long stationId;
 
     @TableField("station_user_id")
-    private Long stationUserId;
+    private String stationUserId;
 
 }

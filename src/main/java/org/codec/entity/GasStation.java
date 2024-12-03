@@ -43,8 +43,6 @@ public class GasStation {
     private Date updateTime; // 更新时间
     @TableField("del_flag")
     private Integer delFlag; // 删除标志（0代表存在 2代表删除）
-    @TableField("user_id")
-    private Long userId;
 
 
 }

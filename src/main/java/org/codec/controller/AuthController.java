@@ -30,10 +30,10 @@ public class AuthController {
     @PostMapping("/login")
     public JsonData login(@RequestBody LoginRequest request) {
 
-        SysUser user = sysUserService.getUserByUsernameAndPassword(request.getUsername(), request.getPassword());
-        if (user == null) {
-            return JsonData.buildResult(BizCodeEnum.ACCOUNT_PWD_ERROR);
-        }
+//        SysUser user = sysUserService.getUserByUsernameAndPassword(request.getUsername(), request.getPassword());
+//        if (user == null) {
+//            return JsonData.buildResult(BizCodeEnum.ACCOUNT_PWD_ERROR);
+//        }
 
         Map map = new HashMap();
         map.put("user",request.getUsername());
@@ -42,7 +42,7 @@ public class AuthController {
         GasUserDTO gasUserDTO = new GasUserDTO();
         gasUserDTO.setToken(jwtTokenUtils.createToken(map));
         gasUserDTO.setUsername(request.getUsername());
-        gasUserDTO.setUsername(user.getUserName());
-        return JsonData.buildSuccess();
+//        gasUserDTO.setUsername(user.getUserName());
+        return JsonData.buildSuccess(gasUserDTO);
     }
 }

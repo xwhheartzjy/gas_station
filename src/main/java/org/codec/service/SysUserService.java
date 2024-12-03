@@ -8,7 +8,5 @@ import org.springframework.stereotype.Service;
 @Service
 public class SysUserService extends ServiceImpl<SysUserMapper, SysUser> {
 
-    public SysUser getUserByUsernameAndPassword(String userName, String password) {
-        return baseMapper.selectByUsernameAndPassword(userName, password);
-    }
+
 }

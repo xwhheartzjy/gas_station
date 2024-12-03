@@ -1,6 +1,5 @@
 package org.codec.mapper;
 
-import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.codec.dto.GasStationDTO;
 import org.codec.entity.GasStationConsumer;

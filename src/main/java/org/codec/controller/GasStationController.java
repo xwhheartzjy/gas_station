@@ -17,19 +17,20 @@ public class GasStationController {
     @Autowired
     private GasStationService gasStationService;
 
-    // 获取加油站列表，支持分页、过滤、排序
-//    @GetMapping("/list")
-//    public Page<GasStation> getGasStationList(
-//            @RequestParam int page_no,
-//            @RequestParam int size,
-//            @RequestParam String station_id,
-//            @RequestParam(required = false) Integer gasoline_type,
-//            @RequestParam(required = false) Integer distance_type,
-//            @RequestParam(required = false) String order_by) {
-//
-//        // 调用服务层获取分页数据
-//        return JsonData.buildSuccess(gasStationService.getGasStationsList(page_no, size, station_id, gasoline_type, distance_type, order_by));
-//    }
+    @GetMapping("/list")
+    public JsonData getGasStationList(
+            @RequestParam(required = false,name = "page_no",defaultValue = "0") int pageNo,
+            @RequestParam(required = false,name = "size",defaultValue = "10") Integer size,
+            @RequestParam(required = false,name = "station_id") String stationId,
+            @RequestParam(required = false,name = "gasoline_type",defaultValue = "1") Integer gasolineType,
+            @RequestParam(required = false,name = "distance_type",defaultValue = "0") Integer distanceType,
+            @RequestParam(required = false,name = "order_by",defaultValue = "price") String orderBy,
+            @RequestParam(required = false,name = "sort",defaultValue = "desc") String sort) {
+
+        // 调用服务层获取分页数据
+        return JsonData.buildSuccess(gasStationService.getGasStationsList(pageNo, size, stationId,
+                gasolineType, distanceType, orderBy,sort));
+    }
 
     @GetMapping("/list_by_user")
     public JsonData listStationByUser(@RequestParam(required = true,name = "user_id") String userId) {
@@ -52,7 +53,7 @@ public class GasStationController {
         return JsonData.buildSuccess();
     }
     @GetMapping("/detail")
-    public JsonData detail(@RequestParam(name = "station_id") Long stationId) {
+    public JsonData detail(@RequestParam(name = "station_id") String stationId) {
         return JsonData.buildSuccess(gasStationService.getStationDetail(stationId));
     }
 

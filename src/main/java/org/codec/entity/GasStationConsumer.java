@@ -48,6 +48,8 @@ public class GasStationConsumer {
     private Integer delFlag; // 删除标志（0代表存在 2代表删除）
     @TableField("user_id")
     private Long userId;
+    @TableField("origin_station")
+    private Long originStation;
 
 
 }

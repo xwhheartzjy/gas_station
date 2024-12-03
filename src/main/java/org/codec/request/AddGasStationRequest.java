@@ -43,7 +43,7 @@ public class AddGasStationRequest {
     private Long areaId;
 
     @JsonProperty("station_id")
-    private Long stationId;
+    private String stationId;
 
 
 
