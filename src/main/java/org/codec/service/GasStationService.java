@@ -173,6 +173,15 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
                         Double.parseDouble(station.getLat()), Double.parseDouble(station.getLng())
                 ) <= distance)
                 .collect(Collectors.toList());
+        //获取价格数据
+        List<GasGdPricingDaily> gasGdPricingDailies = filterPricingList(nearbyStations);
+        // 按oil_station_id分组
+        Map<Long, List<GasGdPricingDaily>> groupedByStations = gasGdPricingDailies.stream()
+                .collect(Collectors.groupingBy(GasGdPricingDaily::getOilStationId));
+        List<GasGdPricingDaily> handledPricingData = new ArrayList<>();
+        if (gasolineType == 0) {
+
+        }
 
         // 3. 根据油品类型找出最低价格的油站，并放到返回数组的最上面
         nearbyStations = prioritizeByGasolineType(nearbyStations, gasolineType);
@@ -203,19 +212,15 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
 
         return result;
     }
-    private List<OGasStation> prioritizeByGasolineType(List<OGasStation> stations, Integer gasolineType) {
-        // 根据油品类型 (油价) 排序，将最低价的油品排到最前面
-        return stations.stream()
-                .sorted(Comparator.comparingInt(station -> {
-                    switch (gasolineType) {
-                        case 92: return station.g();
-                        case 95: return station.getOil95Price();
-                        case 98: return station.getOil98Price();
-                        case 0: return station.getOil0Price();
-                        default: return Integer.MAX_VALUE; // 如果没有匹配的类型
-                    }
-                }))
+    private List<GasGdPricingDaily> filterPricingList(List<OGasStation> stations) {
+        QueryWrapper<GasGdPricingDaily> queryWrapper = new QueryWrapper<>();
+        List<Integer> stationIds = stations.stream()
+                .map(OGasStation::getId)
                 .collect(Collectors.toList());
+        queryWrapper.in("oil_station_id",stationIds);
+        queryWrapper.eq("pricing_date",DateUtil.date().toString("yyyy-MM-dd"));
+        return gasGdPricingDailyMapper.selectList(queryWrapper);
+
     }
 
     public List<OGasStation> filterStationsByDistance(List<OGasStation> gasStations, Integer distanceType, double targetLat, double targetLon) {
