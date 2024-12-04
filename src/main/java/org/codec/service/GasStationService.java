@@ -453,7 +453,7 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
 
         if ("distance".equals(orderBy)) {
             Page<OGasStation> page = new Page<>(pageNo, size);
-            IPage<OGasStation> stationsWithinDistance = oGasStationMapper.findStationsWithinDistance(page, targetLat, targetLon, distance * 3000, sort);
+            Page<OGasStation> stationsWithinDistance = oGasStationMapper.findStationsWithinDistance(page, targetLat, targetLon, distance * 3000, sort);
             //获取价格数据
             List<GasGdPricingDaily> gasGdPricingDailies = filterPricingList(stationsWithinDistance.getRecords());
             // 按oil_station_id分组
@@ -488,10 +488,13 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
                 gasPriceDTO.setGasStationId(oGasStation.getId());
                 gasPriceDTO.setGasLocation(oGasStation.getAddress());
                 gasPriceDTO.setGasStationName(oGasStation.getName());
-                gasPriceDTO.setDistance(Double.parseDouble(oGasStation.getDistance()));
+                gasPriceDTO.setDistance(HaversineUtil.getDistance(targetLat,targetLon,Double.valueOf(oGasStation.getLat()),Double.valueOf(oGasStation.getLng())));
                 gasPriceDTO.setGasStationType("normal");
                 GasInfoDTO gasInfo0 = new GasInfoDTO();
                 List<GasGdPricingDaily> dailies = collect.get(gasPriceDTO.getGasStationId());
+                if (CollectionUtil.isEmpty(dailies)){
+                    continue;
+                }
                 List<GasInfoDTO> infoDTOS = new ArrayList<>();
                 gasInfo0.setGasPrice(dailies.get(0).getOil0());
                 gasInfo0.setGasType(0);
@@ -510,6 +513,9 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
                 infoDTOS.add(gasInfo98);
                 gasPriceDTO.setGasStationNearbyPrice(infoDTOS);
                 r.add(gasPriceDTO);
+            }
+            while (r.size()<size) {
+                
             }
             resultPage.setRecords(r);
             return resultPage;

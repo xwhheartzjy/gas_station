@@ -28,7 +28,7 @@ public class GasStationController {
             @RequestParam(required = false,name = "sort",defaultValue = "desc") String sort) {
 
         // 调用服务层获取分页数据
-        return JsonData.buildSuccess(gasStationService.getGasStationsList(pageNo, size, stationId,
+        return JsonData.buildSuccess(gasStationService.getGasStationsList2(pageNo, size, stationId,
                 gasolineType, distanceType, orderBy,sort));
     }
 

@@ -44,5 +44,4 @@ public class OGasStation {
     @TableField("tenant_id")
     private String tenantId; // 租户 ID
 
-    private String distance;
 }
