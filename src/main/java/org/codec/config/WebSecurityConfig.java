@@ -33,7 +33,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
 
-        httpSecurity
+        httpSecurity.cors()
+                .and()
                 // 禁用 CSRF
                 .csrf().disable()
 
