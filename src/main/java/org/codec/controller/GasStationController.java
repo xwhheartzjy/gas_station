@@ -5,6 +5,7 @@ import org.codec.entity.GasStation;
 import org.codec.enums.BizCodeEnum;
 import org.codec.request.AddGasStationRequest;
 import org.codec.request.DeleteGasStationRequest;
+import org.codec.request.GasStationFlowRequest;
 import org.codec.service.GasStationService;
 import org.codec.util.JsonData;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,8 +65,15 @@ public class GasStationController {
     public JsonData getFlowList(@RequestParam(name = "page_no", defaultValue = "1") Integer pageNo,
                                 @RequestParam(name = "size") Integer size,
                                 @RequestParam(name = "key_word") String keyWord,
-                                @RequestParam(name = "user_id") String userId) {
-        return JsonData.buildSuccess(gasStationService.getStationFlowList(pageNo,size,keyWord,userId));
+                                @RequestParam(name = "user_id") String userId,
+                                @RequestParam(name = "station_id") String stationId) {
+        return JsonData.buildSuccess(gasStationService.getStationFlowList(pageNo,size,keyWord,userId,stationId));
+    }
+
+    @PostMapping("/flow")
+    public JsonData flow(@RequestBody GasStationFlowRequest gasStationFlowRequest) {
+        
+        return JsonData.buildSuccess();
     }
 
 }

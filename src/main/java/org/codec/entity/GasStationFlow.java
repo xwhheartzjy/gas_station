@@ -35,5 +35,14 @@ public class GasStationFlow implements Serializable {
     @TableField("user_id")  // 映射用户ID字段
     private Long userId;
 
+    @TableField("address")
+    private String address;
+
+    @TableField("lng")
+    private String lng; // 经度
+
+    @TableField("lat")
+    private String lat; // 纬度
+
 
 }

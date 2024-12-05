@@ -18,6 +18,7 @@ import org.codec.util.HaversineUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -600,7 +601,7 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         return r;
     }
 
-    public Page<GasPriceDTO> getStationFlowList(Integer pageNo, Integer size, String keyWord, String userId) {
+    public Page<GasPriceDTO> getStationFlowList(Integer pageNo, Integer size, String keyWord, String userId, String stationId) {
         Page<GasStationFlow> page = new Page<>(pageNo, size);
         Page<GasPriceDTO> pageResult = new Page<>(pageNo, size);
         QueryWrapper<GasStationFlow> queryWrapper = new QueryWrapper<>();
@@ -608,17 +609,41 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         queryWrapper.like("gas_station_name", keyWord);
         page = gasStationFlowMapper.selectPage(page, queryWrapper);
 
+        GasStation gasStation = gasStationMapper.selectById(stationId);
+        Long targetLatitude = gasStation.getLatitude().longValue();
+        Long targetLongitude = gasStation.getLongitude().longValue();
+
         List<GasPriceDTO> result = new ArrayList<>();
         for (GasStationFlow gasStationFlow : page.getRecords()) {
             GasPriceDTO gasPriceDTO = new GasPriceDTO();
             gasPriceDTO.setGasStationType("normal");
             gasPriceDTO.setGasStationName(gasStationFlow.getGasStationName());
-            gasPriceDTO.setGasStationNearbyPrice();
-            ga
+            gasPriceDTO.setGasLocation(gasStationFlow.getAddress());
+            gasPriceDTO.setGasStationId(gasStationFlow.getGasStationId().intValue());
+            gasPriceDTO.setDistance(HaversineUtil.getDistance(targetLatitude, targetLongitude,
+                    Double.valueOf(gasStationFlow.getLat()), Double.valueOf(gasStationFlow.getLng())));
+
+            GasInfoDTO gasInfo0 = new GasInfoDTO();
+            List<GasInfoDTO> infoDTOS = new ArrayList<>();
+            gasInfo0.setGasType(0);
+            GasInfoDTO gasInfo92 = new GasInfoDTO();
+            gasInfo92.setGasType(92);
+            GasInfoDTO gasInfo95 = new GasInfoDTO();
+            gasInfo95.setGasType(95);
+            GasInfoDTO gasInfo98 = new GasInfoDTO();
+            gasInfo98.setGasType(98);
+            gasInfo0.setGasPrice(Double.valueOf(gasStationFlow.getOil0()));
+            gasInfo92.setGasPrice(Double.valueOf(gasStationFlow.getOil92()));
+            gasInfo95.setGasPrice(Double.valueOf(gasStationFlow.getOil95()));
+            gasInfo98.setGasPrice(Double.valueOf(gasStationFlow.getOil98()));
+            infoDTOS.add(gasInfo0);
+            infoDTOS.add(gasInfo92);
+            infoDTOS.add(gasInfo95);
+            infoDTOS.add(gasInfo98);
+            gasPriceDTO.setGasStationNearbyPrice(infoDTOS);
+            result.add(gasPriceDTO);
         }
-
-
-
+        pageResult.setRecords(result);
 
         return pageResult;
     }
