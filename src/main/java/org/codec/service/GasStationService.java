@@ -3,19 +3,18 @@ package org.codec.service;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.codec.common.RequestContext;
-import org.codec.dto.*;
+import org.codec.dto.GasAreaDTO;
+import org.codec.dto.GasInfoDTO;
+import org.codec.dto.GasPriceDTO;
+import org.codec.dto.GasStationDTO;
 import org.codec.entity.*;
 import org.codec.mapper.*;
-import org.codec.mapper.map_struct.GasAreaMapStructMapper;
 import org.codec.mapper.map_struct.GasStationMapStructMapper;
 import org.codec.request.AddGasStationRequest;
 import org.codec.util.HaversineUtil;
-import org.codec.util.JwtTokenUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +36,8 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
     private OGasStationMapper oGasStationMapper;
     @Autowired
     private GasStationMappingMapper gasStationMappingMapper;
+    @Autowired
+    private GasStationFlowMapper gasStationFlowMapper;
 
     public List<GasStationDTO> listStationByUser(String userId) {
         QueryWrapper<GasStationConsumer> queryWrapper = new QueryWrapper<>();
@@ -118,6 +119,7 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
             GasAreaDTO gasAreaDTO = new GasAreaDTO();
             gasAreaDTO.setArea_name(currentArea.getAreaName());
             gasAreaDTO.setArea_id(currentArea.getAreaId());
+            gasAreaDTO.setLevel(currentArea.getLevel());
 
             result.add(gasAreaDTO);
 
@@ -146,10 +148,10 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         // 1. 获取目标加油站的经纬度
         GasStationConsumer targetStation = gasStationConsumerMapper.selectById(stationId);
         if (targetStation == null) {
-            return new Page<>(pageNo,size);
+            return new Page<>(pageNo, size);
         }
         if (targetStation.getOriginStation() == null) {
-            return new Page<>(pageNo,size);
+            return new Page<>(pageNo, size);
         }
 
         double targetLat = targetStation.getLatitude().doubleValue();
@@ -171,7 +173,7 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
             double dis = HaversineUtil.getDistance(
                     targetLat, targetLon,
                     Double.parseDouble(oGasStation.getLat()), Double.parseDouble(oGasStation.getLng()));
-            if (dis <= distance*1000) {
+            if (dis <= distance * 1000) {
                 gasPriceDTO.setGasLocation(oGasStation.getAddress());
                 gasPriceDTO.setGasStationName(oGasStation.getName());
                 gasPriceDTO.setGasStationId(oGasStation.getId());
@@ -183,7 +185,7 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
 
         }
         if (CollectionUtil.isEmpty(nearbyStationsFiltered)) {
-            return new Page<>(pageNo,size);
+            return new Page<>(pageNo, size);
         }
         //获取价格数据
         List<GasGdPricingDaily> gasGdPricingDailies = filterPricingList(nearbyStationsFiltered);
@@ -244,7 +246,7 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
                 l.add(gasPriceDTOS.get(0));
             }
             for (GasPriceDTO gasPriceDTO : result) {
-                for (GasGdPricingDaily gasGdPricingDaily :sortedList) {
+                for (GasGdPricingDaily gasGdPricingDaily : sortedList) {
                     if (gasPriceDTO.getGasStationId().equals(gasGdPricingDaily.getId())) {
                         continue;
                     }
@@ -292,13 +294,13 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
 //                infoDTOS.add(gasInfo98);
 //                gasPriceDTO.setGasStationNearbyPrice(infoDTOS);
 //            }
-        }else if ("distance".equals(orderBy)) {
+        } else if ("distance".equals(orderBy)) {
             List<GasPriceDTO> sortedData = new ArrayList<>();
             if ("asc".equals(sort)) {
                 sortedData = result.stream()
                         .sorted(Comparator.comparingDouble(GasPriceDTO::getDistance))  // 升序排序
                         .collect(Collectors.toList());
-            }else {
+            } else {
                 sortedData = result.stream()
                         .sorted(Comparator.comparingDouble(GasPriceDTO::getDistance).reversed())  // 升序排序
                         .collect(Collectors.toList());
@@ -336,7 +338,7 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
 
             // 分页后的结果
             List<GasPriceDTO> paginatedList = sortedData.subList(fromIndex, toIndex);
-            Page<GasPriceDTO> page = new Page<>(pageNo,size, sortedData.size());
+            Page<GasPriceDTO> page = new Page<>(pageNo, size, sortedData.size());
             page.setRecords(paginatedList);
 
             return page;
@@ -344,13 +346,11 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         }
 
 
-
-        return new Page<>(pageNo,size);
+        return new Page<>(pageNo, size);
     }
 
 
-
-    private List<GasGdPricingDaily> sortPricing(Integer gasolineType,List<GasGdPricingDaily> pricingDailies,String sort) {
+    private List<GasGdPricingDaily> sortPricing(Integer gasolineType, List<GasGdPricingDaily> pricingDailies, String sort) {
         if (gasolineType == 0) {
             Optional<GasGdPricingDaily> minOil0Record = pricingDailies.stream()
                     .min(Comparator.comparingDouble(GasGdPricingDaily::getOil0));
@@ -400,9 +400,6 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
     }
 
 
-
-
-
     private List<GasGdPricingDaily> filterPricingList(List<OGasStation> stations) {
         QueryWrapper<GasGdPricingDaily> queryWrapper = new QueryWrapper<>();
         List<Integer> stationIds = stations.stream()
@@ -415,7 +412,7 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
 
     }
 
-    private List<GasGdPricingDaily> filterPricingListByPrice(List<OGasStation> stations,String sort,Integer gasType) {
+    private List<GasGdPricingDaily> filterPricingListByPrice(List<OGasStation> stations, String sort, Integer gasType) {
         QueryWrapper<GasGdPricingDaily> queryWrapper = new QueryWrapper<>();
         List<Integer> stationIds = stations.stream()
                 .map(OGasStation::getId)
@@ -429,8 +426,8 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
     }
 
     public Page<GasPriceDTO> getGasStationsList2(Integer pageNo, Integer size,
-                                                String stationId, Integer gasolineType,
-                                                Integer distanceType, String orderBy, String sort) {
+                                                 String stationId, Integer gasolineType,
+                                                 Integer distanceType, String orderBy, String sort) {
         double distance;
         if (distanceType == 0) {
             distance = 3;
@@ -444,10 +441,10 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         // 1. 获取目标加油站的经纬度
         GasStationConsumer targetStation = gasStationConsumerMapper.selectById(stationId);
         if (targetStation == null) {
-            return new Page<>(pageNo,size);
+            return new Page<>(pageNo, size);
         }
         if (targetStation.getOriginStation() == null) {
-            return new Page<>(pageNo,size);
+            return new Page<>(pageNo, size);
         }
 
         double targetLat = targetStation.getLatitude().doubleValue();
@@ -465,13 +462,13 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
 
         if ("distance".equals(orderBy)) {
             List<GasPriceDTO> gasPriceDTOS = generateHandleData(pageNo, size, gasolineType, sort, targetLat, targetLon, distance);
-            Page<GasPriceDTO> r = new Page<>(pageNo,size);
+            Page<GasPriceDTO> r = new Page<>(pageNo, size);
             r.setRecords(gasPriceDTOS);
             return r;
         }
         //根据price排序
         //获取价格数据
-        Page<GasGdPricingDaily> page = new Page<>(pageNo,size);
+        Page<GasGdPricingDaily> page = new Page<>(pageNo, size);
         List<OGasStation> stationsWithDistance = oGasStationMapper.findStationsWithDistance(targetLat, targetLon, distance * 1000);
         List<Integer> stationIds = stationsWithDistance.stream()
                 .map(OGasStation::getId)
@@ -483,14 +480,14 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         for (GasGdPricingDaily gasGdPricingDaily : gasGdPricingDailyIPage.getRecords()) {
             GasPriceDTO gasPriceDTO = new GasPriceDTO();
             List<OGasStation> oGasStations = collectStation.get(gasGdPricingDaily.getOilStationId().intValue());
-            if (CollectionUtil.isEmpty(oGasStations)){
+            if (CollectionUtil.isEmpty(oGasStations)) {
                 continue;
             }
             gasPriceDTO.setGasStationId(gasGdPricingDaily.getOilStationId().intValue());
             gasPriceDTO.setGasLocation(oGasStations.get(0).getAddress());
             gasPriceDTO.setGasStationName(oGasStations.get(0).getName());
-            gasPriceDTO.setDistance(HaversineUtil.getDistance(targetLat,targetLon,
-                    Double.valueOf(oGasStations.get(0).getLat()),Double.valueOf(oGasStations.get(0).getLng())));
+            gasPriceDTO.setDistance(HaversineUtil.getDistance(targetLat, targetLon,
+                    Double.valueOf(oGasStations.get(0).getLat()), Double.valueOf(oGasStations.get(0).getLng())));
             gasPriceDTO.setGasStationType("normal");
 
             List<GasInfoDTO> infoDTOS = new ArrayList<>();
@@ -516,7 +513,7 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
             gasPriceDTO.setGasStationNearbyPrice(infoDTOS);
             result.add(gasPriceDTO);
         }
-        Page<GasPriceDTO> r = new Page<>(pageNo,size);
+        Page<GasPriceDTO> r = new Page<>(pageNo, size);
         r.setRecords(result);
         return r;
     }
@@ -534,8 +531,8 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
 //    }
 
     private List<GasPriceDTO> generateHandleData(Integer pageNo, Integer size, Integer gasolineType,
-                                                  String sort,double targetLat,double targetLon,
-                                                 double distance){
+                                                 String sort, double targetLat, double targetLon,
+                                                 double distance) {
         Page<OGasStation> page = new Page<>(pageNo, size);
         Page<OGasStation> stationsWithinDistance = oGasStationMapper.findStationsWithinDistance(page, targetLat, targetLon, distance * 3000, sort);
         if (CollectionUtil.isEmpty(stationsWithinDistance.getRecords())) {
@@ -569,12 +566,12 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         }
         Map<Long, List<GasGdPricingDaily>> collect = stationLowestPriceList.stream().collect(Collectors.groupingBy(GasGdPricingDaily::getOilStationId));
         List<GasPriceDTO> r = new ArrayList<>();
-        for (OGasStation oGasStation :stationsWithinDistance.getRecords()) {
+        for (OGasStation oGasStation : stationsWithinDistance.getRecords()) {
             GasPriceDTO gasPriceDTO = new GasPriceDTO();
             gasPriceDTO.setGasStationId(oGasStation.getId());
             gasPriceDTO.setGasLocation(oGasStation.getAddress());
             gasPriceDTO.setGasStationName(oGasStation.getName());
-            gasPriceDTO.setDistance(HaversineUtil.getDistance(targetLat,targetLon,Double.valueOf(oGasStation.getLat()),Double.valueOf(oGasStation.getLng())));
+            gasPriceDTO.setDistance(HaversineUtil.getDistance(targetLat, targetLon, Double.valueOf(oGasStation.getLat()), Double.valueOf(oGasStation.getLng())));
             gasPriceDTO.setGasStationType("normal");
             GasInfoDTO gasInfo0 = new GasInfoDTO();
             List<GasGdPricingDaily> dailies = collect.get(Long.valueOf(gasPriceDTO.getGasStationId()));
@@ -586,7 +583,7 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
             gasInfo95.setGasType(95);
             GasInfoDTO gasInfo98 = new GasInfoDTO();
             gasInfo98.setGasType(98);
-            if (CollectionUtil.isNotEmpty(dailies)){
+            if (CollectionUtil.isNotEmpty(dailies)) {
                 gasInfo0.setGasPrice(dailies.get(0).getOil0());
                 gasInfo92.setGasPrice(dailies.get(0).getOil92());
                 gasInfo95.setGasPrice(dailies.get(0).getOil95());
@@ -601,6 +598,29 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
             r.add(gasPriceDTO);
         }
         return r;
+    }
+
+    public Page<GasPriceDTO> getStationFlowList(Integer pageNo, Integer size, String keyWord, String userId) {
+        Page<GasStationFlow> page = new Page<>(pageNo, size);
+        Page<GasPriceDTO> pageResult = new Page<>(pageNo, size);
+        QueryWrapper<GasStationFlow> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", userId);
+        queryWrapper.like("gas_station_name", keyWord);
+        page = gasStationFlowMapper.selectPage(page, queryWrapper);
+
+        List<GasPriceDTO> result = new ArrayList<>();
+        for (GasStationFlow gasStationFlow : page.getRecords()) {
+            GasPriceDTO gasPriceDTO = new GasPriceDTO();
+            gasPriceDTO.setGasStationType("normal");
+            gasPriceDTO.setGasStationName(gasStationFlow.getGasStationName());
+            gasPriceDTO.setGasStationNearbyPrice();
+            ga
+        }
+
+
+
+
+        return pageResult;
     }
 
 }

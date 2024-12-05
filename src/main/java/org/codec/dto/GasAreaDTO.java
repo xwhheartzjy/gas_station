@@ -6,4 +6,5 @@ import lombok.Data;
 public class GasAreaDTO {
     private Long area_id;
     private String area_name;
+    private String level;
 }
