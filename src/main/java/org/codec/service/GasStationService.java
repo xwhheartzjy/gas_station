@@ -14,9 +14,12 @@ import org.codec.entity.*;
 import org.codec.mapper.*;
 import org.codec.mapper.map_struct.GasStationMapStructMapper;
 import org.codec.request.AddGasStationRequest;
+import org.codec.request.GasStationFlowRequest;
 import org.codec.util.HaversineUtil;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -606,7 +609,9 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         Page<GasPriceDTO> pageResult = new Page<>(pageNo, size);
         QueryWrapper<GasStationFlow> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
-        queryWrapper.like("gas_station_name", keyWord);
+        if (!Objects.isNull(keyWord) && !keyWord.isEmpty()) {
+            queryWrapper.like("gas_station_name", keyWord);
+        }
         page = gasStationFlowMapper.selectPage(page, queryWrapper);
 
         GasStation gasStation = gasStationMapper.selectById(stationId);
@@ -646,6 +651,12 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         pageResult.setRecords(result);
 
         return pageResult;
+    }
+
+    public void flow(GasStationFlowRequest gasStationFlowRequest) {
+        GasStationFlow gasStationFlow = new GasStationFlow();
+        BeanUtils.copyProperties(gasStationFlowRequest,gasStationFlow);
+        gasStationFlowMapper.insert(gasStationFlow);
     }
 
 }

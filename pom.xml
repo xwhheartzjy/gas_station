@@ -110,6 +110,11 @@
       <artifactId>mysql-connector-java</artifactId>
       <version>8.0.33</version>  <!-- 确保使用适合的版本 -->
     </dependency>
+    <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-ui</artifactId>
+      <version>1.6.9</version>
+    </dependency>
   </dependencies>
   <!--module不用添加打包版本信息-->
   <build>

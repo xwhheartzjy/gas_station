@@ -64,14 +64,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/**/*.html",
                         "/**/*.css",
                         "/**/*.js",
-                        "/webSocket/**"
+                        "/webSocket/**",
+                        "swagger-ui/index.html"
                 ).permitAll()
 
                 // 放行swagger
-                .antMatchers("/swagger-ui.html").permitAll()
+                .antMatchers("swagger-ui/index.html").permitAll()
+                .antMatchers("/v3/api-docs/swagger-config").permitAll()
                 .antMatchers("/swagger-resources/**").permitAll()
                 .antMatchers("/webjars/**").permitAll()
-                .antMatchers("/*/api-docs").permitAll()
+                .antMatchers("/*/api-docs/*").permitAll()
 
                 // 放行文件访问
                 .antMatchers("/file/**").permitAll()

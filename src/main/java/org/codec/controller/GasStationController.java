@@ -64,7 +64,7 @@ public class GasStationController {
     @GetMapping("/flow/list")
     public JsonData getFlowList(@RequestParam(name = "page_no", defaultValue = "1") Integer pageNo,
                                 @RequestParam(name = "size") Integer size,
-                                @RequestParam(name = "key_word") String keyWord,
+                                @RequestParam(name = "key_word",required = false) String keyWord,
                                 @RequestParam(name = "user_id") String userId,
                                 @RequestParam(name = "station_id") String stationId) {
         return JsonData.buildSuccess(gasStationService.getStationFlowList(pageNo,size,keyWord,userId,stationId));
@@ -72,7 +72,7 @@ public class GasStationController {
 
     @PostMapping("/flow")
     public JsonData flow(@RequestBody GasStationFlowRequest gasStationFlowRequest) {
-        
+        gasStationService.flow(gasStationFlowRequest);
         return JsonData.buildSuccess();
     }
 
