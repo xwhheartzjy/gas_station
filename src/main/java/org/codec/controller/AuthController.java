@@ -42,6 +42,7 @@ public class AuthController {
         GasUserDTO gasUserDTO = new GasUserDTO();
         gasUserDTO.setToken(jwtTokenUtils.createToken(map));
         gasUserDTO.setUsername(request.getUsername());
+        gasUserDTO.setUserId("123456789");
 //        gasUserDTO.setUsername(user.getUserName());
         return JsonData.buildSuccess(gasUserDTO);
     }
