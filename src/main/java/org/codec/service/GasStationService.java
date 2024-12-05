@@ -6,10 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.codec.common.RequestContext;
-import org.codec.dto.GasAreaDTO;
-import org.codec.dto.GasInfoDTO;
-import org.codec.dto.GasPriceDTO;
-import org.codec.dto.GasStationDTO;
+import org.codec.dto.*;
 import org.codec.entity.*;
 import org.codec.mapper.*;
 import org.codec.mapper.map_struct.GasStationMapStructMapper;
@@ -20,8 +17,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -655,8 +652,98 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
 
     public void flow(GasStationFlowRequest gasStationFlowRequest) {
         GasStationFlow gasStationFlow = new GasStationFlow();
-        BeanUtils.copyProperties(gasStationFlowRequest,gasStationFlow);
+        BeanUtils.copyProperties(gasStationFlowRequest, gasStationFlow);
         gasStationFlowMapper.insert(gasStationFlow);
+    }
+
+
+    public GasStationDetailDTO getStationNormalDetail(String stationId, String normalStationId) {
+        GasStationDetailDTO result = new GasStationDetailDTO();
+        OGasStation oGasStation = oGasStationMapper.selectById(normalStationId);
+        GasStation gasStation = gasStationMapper.selectById(stationId);
+        result.setGasStationName(gasStation.getName());
+        result.setDistance(HaversineUtil.getDistance(gasStation.getLatitude().doubleValue(), gasStation.getLongitude().doubleValue(),
+                Double.valueOf(oGasStation.getLat()), Double.valueOf(oGasStation.getLng())));
+        result.setNormalGasStationName(oGasStation.getName());
+
+        LocalDate today = LocalDate.now();
+
+        // 获取 30 天前的日期
+        LocalDate thirtyDaysAgo = today.minusDays(30);
+        // 创建 QueryWrapper，用于构建查询条件
+        QueryWrapper<GasGdPricingDaily> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("oil_station_id",normalStationId);
+        queryWrapper.between("pricing_date", thirtyDaysAgo.minusDays(30), today.minusDays(30));
+        queryWrapper.orderByDesc("pricing_date");
+
+        List<GasGdPricingDaily> gasGdPricingDailies = gasGdPricingDailyMapper.selectList(queryWrapper);
+        Map<Integer, List<GasGdPricingDaily>> collectBySource = gasGdPricingDailies.stream().collect(Collectors.groupingBy(GasGdPricingDaily::getSource));
+
+        List<PlatformPriceDTO> platformPriceDTOS = new ArrayList<>();
+        ChartDTO chartDTO = new ChartDTO();
+
+        for (Map.Entry<Integer, List<GasGdPricingDaily>> entry : collectBySource.entrySet()) {
+            Integer source = entry.getKey();
+            List<GasGdPricingDaily> values = entry.getValue();
+
+            if (source == 3) {
+                List<Integer> xAxisDays = new ArrayList<>();
+                List<Integer> datas0 = new ArrayList<>();
+                List<Integer> datas92 = new ArrayList<>();
+                List<Integer> datas95 = new ArrayList<>();
+                List<Integer> datas98 = new ArrayList<>();
+                List<ChartValue> chartValues = new ArrayList<>();
+                ChartValue chartValue0 = new ChartValue();
+                ChartValue chartValue92 = new ChartValue();
+                ChartValue chartValue95 = new ChartValue();
+                ChartValue chartValue98 = new ChartValue();
+                chartValue0.setName("0#");
+                ChartData chartData = new ChartData();
+                for (GasGdPricingDaily gasGdPricingDaily : values) {
+                    LocalDate pricingDate = gasGdPricingDaily.getPricingDate();
+                    xAxisDays.add(pricingDate.getDayOfMonth());
+                    datas0.add(gasGdPricingDaily.getOil0());
+                    datas92.add(gasGdPricingDaily.getOil92());
+                    datas95.add(gasGdPricingDaily.getOil95());
+                    datas98.add(gasGdPricingDaily.getOil98());
+
+                    if (pricingDate.equals(LocalDate.now())) {
+                        PlatformPriceDTO platformPriceDTO = new PlatformPriceDTO();
+                        platformPriceDTO.setTuanyouPrice(String.valueOf(gasGdPricingDaily.getOil0()));
+                        platformPriceDTO.setPriceType("0#");
+                        platformPriceDTO.setTuanyouPrice(String.valueOf(gasGdPricingDaily.getOil92()));
+                        platformPriceDTO.setPriceType("92#");
+                        platformPriceDTO.setTuanyouPrice(String.valueOf(gasGdPricingDaily.getOil95()));
+                        platformPriceDTO.setPriceType("95#");
+                        platformPriceDTO.setTuanyouPrice(String.valueOf(gasGdPricingDaily.getOil98()));
+                        platformPriceDTO.setPriceType("98#");
+                        platformPriceDTOS.add(platformPriceDTO);
+                    }
+                }
+                chartValue0.setData(datas0);
+                chartValue92.setData(datas92);
+                chartValue95.setData(datas95);
+                chartValue98.setData(datas98);
+                chartValues.add(chartValue0);
+                chartValues.add(chartValue92);
+                chartValues.add(chartValue95);
+                chartValues.add(chartValue98);
+                chartData.setValue(chartValues);
+                chartData.setXAxis(xAxisDays);
+                chartDTO.setTuanyou(chartData);
+
+
+            } else if (source == 2) {
+                
+            } else if (source == 1) {
+                
+            }
+        }
+
+        result.setChart(chartDTO);
+        result.setPlatformPriceList(platformPriceDTOS);
+        return result;
+
     }
 
 }

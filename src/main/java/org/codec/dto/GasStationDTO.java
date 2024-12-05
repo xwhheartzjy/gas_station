@@ -12,7 +12,7 @@ import java.util.List;
 @Data
 public class GasStationDTO {
     private String station_id; // 站点ID
-    private String name; // 油站名称
+    private String gas_station_name; // 油站名称
 
     private List<GasAreaDTO> areas;
     private String address;

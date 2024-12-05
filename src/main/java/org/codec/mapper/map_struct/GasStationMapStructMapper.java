@@ -14,5 +14,6 @@ public interface GasStationMapStructMapper {
     @Mapping(source = "businessEndTime", target = "business_end_time")
     @Mapping(source = "stationType", target = "station_type")
     @Mapping(source = "carWash", target = "car_wash")
+    @Mapping(source = "name", target = "gas_station_name")
     GasStationDTO toDTO(GasStationConsumer gasStationConsumer);
 }

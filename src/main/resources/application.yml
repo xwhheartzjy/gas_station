@@ -14,3 +14,7 @@ jwt:
   base64-secret: Ay6tP1aHEyHLn8RffQsVjPIf+y0a0aO/4gdAf1u5qFXjx/rtF1O9TX7Xe3AbAlz8hA7oRxFT9lWfsc5d9u5cJg==
   # 令牌过期时间 此处单位/毫秒
   token-validity-in-seconds: 14400000
+  logging:
+    level:
+      com.baomidou.mybatisplus.core: DEBUG  # 打印 MyBatis-Plus 的日志
+      org.mybatis: DEBUG                    # 打印 MyBatis 的日志
