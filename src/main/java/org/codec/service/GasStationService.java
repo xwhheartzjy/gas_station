@@ -521,17 +521,17 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         return r;
     }
 
-    private List<GasPriceDTO> handleLowestPrice(Integer gasolineType,List<GasPriceDTO> list) {
-        if (gasolineType == 0) {
-
-        } else if (gasolineType == 1) {
-
-        } else if (gasolineType == 2) {
-
-        } else if (gasolineType == 3) {
-
-        }
-    }
+//    private List<GasPriceDTO> handleLowestPrice(Integer gasolineType,List<GasPriceDTO> list) {
+//        if (gasolineType == 0) {
+//
+//        } else if (gasolineType == 1) {
+//
+//        } else if (gasolineType == 2) {
+//
+//        } else if (gasolineType == 3) {
+//
+//        }
+//    }
 
     private List<GasPriceDTO> generateHandleData(Integer pageNo, Integer size, Integer gasolineType,
                                                   String sort,double targetLat,double targetLon,
