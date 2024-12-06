@@ -12,6 +12,5 @@ public class GasPriceDTO {
     private boolean isFollow;
     private double distance;
     private List<GasInfoDTO> gasStationNearbyPrice;
-
     private String gasStationType;
 }

@@ -17,6 +17,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
@@ -657,7 +658,18 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
     }
 
 
-    public GasStationDetailDTO getStationNormalDetail(String stationId, String normalStationId) {
+    public GasStationDetailDTO getStationNormalDetail(String stationId, String normalStationId, Integer distanceType) {
+        double distance;
+        if (distanceType == 0) {
+            distance = 3;
+        } else if (distanceType == 1) {
+            distance = 5;
+        } else if (distanceType == 2) {
+            distance = 10;
+        } else {
+            distance = 0;
+        }
+
         GasStationDetailDTO result = new GasStationDetailDTO();
         OGasStation oGasStation = oGasStationMapper.selectById(normalStationId);
         GasStation gasStation = gasStationMapper.selectById(stationId);
@@ -666,13 +678,47 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
                 Double.valueOf(oGasStation.getLat()), Double.valueOf(oGasStation.getLng())));
         result.setNormalGasStationName(oGasStation.getName());
 
+        List<OGasStation> stationsWithDistance = oGasStationMapper.findStationsWithDistance(gasStation.getLatitude().doubleValue(),
+                gasStation.getLongitude().doubleValue(), distance * 1000);
+        List<Integer> stationIds = stationsWithDistance.stream()
+                .map(OGasStation::getId)
+                .collect(Collectors.toList());
+        QueryWrapper<GasGdPricingDaily> PriceQueryWrapper = new QueryWrapper<>();
+        PriceQueryWrapper.in("oil_station_id", stationIds);
+        List<GasGdPricingDaily> gasGdPricingDailiesWithStations = gasGdPricingDailyMapper.selectList(PriceQueryWrapper);
+        Map<Long, List<GasGdPricingDaily>> collectByOStationId = gasGdPricingDailiesWithStations.stream().collect(Collectors.groupingBy(GasGdPricingDaily::getOilStationId));
+        Double stationPrice0 = 0.0;
+        Double stationPrice92 = 0.0;
+        Double stationPrice95 = 0.0;
+        Double stationPrice98 = 0.0;
+        for (Map.Entry<Long, List<GasGdPricingDaily>> entry : collectByOStationId.entrySet()) {
+            List<GasGdPricingDaily> values = entry.getValue();
+            Double sourcePrices0 = 0.0;
+            Double sourcePrices92 = 0.0;
+            Double sourcePrices095 = 0.0;
+            Double sourcePrices98 = 0.0;
+            for (GasGdPricingDaily gasGdPricingDaily : values) {
+                sourcePrices0 = sourcePrices0 + gasGdPricingDaily.getOil0();
+                sourcePrices92 = sourcePrices92 + gasGdPricingDaily.getOil92();
+                sourcePrices095 = sourcePrices095 + gasGdPricingDaily.getOil95();
+                sourcePrices98 = sourcePrices98 + gasGdPricingDaily.getOil98();
+            }
+            stationPrice0 = stationPrice0 + (sourcePrices0 / values.size());
+            stationPrice92 = stationPrice92 + (sourcePrices92 / values.size());
+            stationPrice95 = stationPrice95 + (sourcePrices095 / values.size());
+            stationPrice98 = stationPrice98 + (sourcePrices98 / values.size());
+        }
+        result.setOil0PriceAvg(String.valueOf(stationPrice0/collectByOStationId.size()));
+        result.setOil92PriceAvg(String.valueOf(stationPrice92/collectByOStationId.size()));
+        result.setOil95PriceAvg(String.valueOf(stationPrice95/collectByOStationId.size()));
+        result.setOil98PriceAvg(String.valueOf(stationPrice98/collectByOStationId.size()));
         LocalDate today = LocalDate.now();
 
         // 获取 30 天前的日期
         LocalDate thirtyDaysAgo = today.minusDays(30);
         // 创建 QueryWrapper，用于构建查询条件
         QueryWrapper<GasGdPricingDaily> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("oil_station_id",normalStationId);
+        queryWrapper.eq("oil_station_id", normalStationId);
         queryWrapper.between("pricing_date", thirtyDaysAgo.minusDays(30), today.minusDays(30));
         queryWrapper.orderByDesc("pricing_date");
 
@@ -698,6 +744,9 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
                 ChartValue chartValue95 = new ChartValue();
                 ChartValue chartValue98 = new ChartValue();
                 chartValue0.setName("0#");
+                chartValue92.setName("92#");
+                chartValue95.setName("95#");
+                chartValue98.setName("98#");
                 ChartData chartData = new ChartData();
                 for (GasGdPricingDaily gasGdPricingDaily : values) {
                     LocalDate pricingDate = gasGdPricingDaily.getPricingDate();
@@ -734,9 +783,9 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
 
 
             } else if (source == 2) {
-                
+
             } else if (source == 1) {
-                
+
             }
         }
 

@@ -78,8 +78,9 @@ public class GasStationController {
 
     @GetMapping("/normal/detail")
     public JsonData normalDetail(@RequestParam(name = "station_id") String stationId,
-                                 @RequestParam(name = "normal_station_id") String normalStationId) {
-        return JsonData.buildSuccess(gasStationService.getStationNormalDetail(stationId,normalStationId));
+                                 @RequestParam(name = "normal_station_id") String normalStationId,
+                                 @RequestParam(name = "distance_type") Integer distanceType) {
+        return JsonData.buildSuccess(gasStationService.getStationNormalDetail(stationId,normalStationId,distanceType));
     }
 
 }
