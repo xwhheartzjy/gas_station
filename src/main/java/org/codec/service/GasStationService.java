@@ -425,7 +425,7 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
 
         GasStationDetailDTO result = new GasStationDetailDTO();
         OGasStation oGasStation = oGasStationMapper.selectById(normalStationId);
-        GasStation gasStation = gasStationMapper.selectById(stationId);
+        GasStationConsumer gasStation = gasStationConsumerMapper.selectById(stationId);
         result.setGasStationName(gasStation.getName());
         result.setDistance(HaversineUtil.getDistance(gasStation.getLatitude().doubleValue(), gasStation.getLongitude().doubleValue(),
                 Double.valueOf(oGasStation.getLat()), Double.valueOf(oGasStation.getLng())));
@@ -548,7 +548,7 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
             }
         }
         QueryWrapper<AreaReport> areaReportQueryWrapper = new QueryWrapper<>();
-        areaReportQueryWrapper.eq("gas_station_id", gasStation.getStationId());
+        areaReportQueryWrapper.eq("gas_station_id", gasStation.getOriginStation());
         AreaReport areaReport = areaReportMapper.selectOne(areaReportQueryWrapper);
         AreaReportSummaryDTO areaReportSummaryDTO = areaReportMapper.queryAreaSummary(areaReport.getId());
         result.setBusinessCircleNumber(String.valueOf(areaReportSummaryDTO.getBusinessCircleNumber()));
