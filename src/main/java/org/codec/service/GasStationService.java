@@ -220,10 +220,10 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
             GasInfoDTO gasInfo98 = new GasInfoDTO();
             gasInfo98.setGasType(98);
 //            if (CollectionUtil.isNotEmpty(dailies)){
-            gasInfo0.setGasPrice(gasGdPricingDaily.getOil0());
-            gasInfo92.setGasPrice(gasGdPricingDaily.getOil92());
-            gasInfo95.setGasPrice(gasGdPricingDaily.getOil95());
-            gasInfo98.setGasPrice(gasGdPricingDaily.getOil98());
+            gasInfo0.setGasPrice(String.format("%.2f",Double.valueOf(gasGdPricingDaily.getOil0())/100.0));
+            gasInfo92.setGasPrice(String.format("%.2f",Double.valueOf(gasGdPricingDaily.getOil92())/100.0));
+            gasInfo95.setGasPrice(String.format("%.2f",Double.valueOf(gasGdPricingDaily.getOil95())/100.0));
+            gasInfo98.setGasPrice(String.format("%.2f",Double.valueOf(gasGdPricingDaily.getOil98())/100.0));
 
 //            }
             infoDTOS.add(gasInfo0);
@@ -248,8 +248,8 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
             if (gasPriceDTO.getGasStationNearbyPrice() != null) {
                 for (GasInfoDTO gasInfoDTO : gasPriceDTO.getGasStationNearbyPrice()) {
                     // 检查是否符合目标 type 并更新最小 price
-                    if (gasInfoDTO.getGasPrice() == gasolineType && gasInfoDTO.getGasPrice() < minPrice) {
-                        minPrice = gasInfoDTO.getGasPrice();
+                    if (gasInfoDTO.getGasType() == gasolineType && Double.valueOf(gasInfoDTO.getGasPrice()) < minPrice) {
+                        minPrice = Double.valueOf(gasInfoDTO.getGasPrice());
                         minPriceOuterObject = gasPriceDTO;
                     }
                 }
@@ -318,10 +318,10 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
             GasInfoDTO gasInfo98 = new GasInfoDTO();
             gasInfo98.setGasType(98);
             if (CollectionUtil.isNotEmpty(dailies)) {
-                gasInfo0.setGasPrice(dailies.get(0).getOil0());
-                gasInfo92.setGasPrice(dailies.get(0).getOil92());
-                gasInfo95.setGasPrice(dailies.get(0).getOil95());
-                gasInfo98.setGasPrice(dailies.get(0).getOil98());
+                gasInfo0.setGasPrice(String.format("%.2f",Double.valueOf(dailies.get(0).getOil0())/100.0));
+                gasInfo92.setGasPrice(String.format("%.2f",Double.valueOf(dailies.get(0).getOil92())/100.0));
+                gasInfo95.setGasPrice(String.format("%.2f",Double.valueOf(dailies.get(0).getOil95())/100.0));
+                gasInfo98.setGasPrice(String.format("%.2f",Double.valueOf(dailies.get(0).getOil98())/100.0));
 
             }
             infoDTOS.add(gasInfo0);
@@ -347,7 +347,7 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         Double targetLongitude = 0.0;
 
         if (stationId != "") {
-            GasStation gasStation = gasStationMapper.selectById(stationId);
+            GasStationConsumer gasStation = gasStationConsumerMapper.selectById(stationId);
             targetLatitude = gasStation.getLatitude().doubleValue();
             targetLongitude = gasStation.getLongitude().doubleValue();
         }
@@ -376,10 +376,10 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
             gasInfo95.setGasType(95);
             GasInfoDTO gasInfo98 = new GasInfoDTO();
             gasInfo98.setGasType(98);
-            gasInfo0.setGasPrice(Double.valueOf(gasStationFlow.getOil0()));
-            gasInfo92.setGasPrice(Double.valueOf(gasStationFlow.getOil92()));
-            gasInfo95.setGasPrice(Double.valueOf(gasStationFlow.getOil95()));
-            gasInfo98.setGasPrice(Double.valueOf(gasStationFlow.getOil98()));
+            gasInfo0.setGasPrice(String.format("%.2f",Double.valueOf(gasStationFlow.getOil0())/100.0));
+            gasInfo92.setGasPrice(String.format("%.2f",Double.valueOf(gasStationFlow.getOil92())/100.0));
+            gasInfo95.setGasPrice(String.format("%.2f",Double.valueOf(gasStationFlow.getOil95())/100.0));
+            gasInfo98.setGasPrice(String.format("%.2f",Double.valueOf(gasStationFlow.getOil98())/100.0));
             infoDTOS.add(gasInfo0);
             infoDTOS.add(gasInfo92);
             infoDTOS.add(gasInfo95);
