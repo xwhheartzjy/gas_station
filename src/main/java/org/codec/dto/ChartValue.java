@@ -7,6 +7,6 @@ import java.util.List;
 @Data
 public class ChartValue {
     private String name;
-    private List<Integer> data;
+    private List<String> data;
 
 }

@@ -39,4 +39,6 @@ public class GasStationFlowRequest implements Serializable {
 
     @JsonProperty("lat")
     private String lat; // 纬度
+    @JsonProperty("flow")
+    private Boolean flow;
 }

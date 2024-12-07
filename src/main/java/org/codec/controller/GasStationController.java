@@ -66,7 +66,7 @@ public class GasStationController {
                                 @RequestParam(name = "size") Integer size,
                                 @RequestParam(name = "key_word",required = false) String keyWord,
                                 @RequestParam(name = "user_id") String userId,
-                                @RequestParam(name = "station_id") String stationId) {
+                                @RequestParam(name = "station_id",required = false) String stationId) {
         return JsonData.buildSuccess(gasStationService.getStationFlowList(pageNo,size,keyWord,userId,stationId));
     }
 

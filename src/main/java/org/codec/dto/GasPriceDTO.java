@@ -13,4 +13,7 @@ public class GasPriceDTO {
     private double distance;
     private List<GasInfoDTO> gasStationNearbyPrice;
     private String gasStationType;
+
+    private String lat;
+    private String lng;
 }

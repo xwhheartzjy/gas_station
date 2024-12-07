@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 import java.io.Serializable;
+
 @Data
 @TableName("gas_station_flow")  // 映射表名
 public class GasStationFlow implements Serializable {
@@ -44,5 +45,6 @@ public class GasStationFlow implements Serializable {
     @TableField("lat")
     private String lat; // 纬度
 
-
+    @TableField("flow")
+    private Boolean flow;
 }
