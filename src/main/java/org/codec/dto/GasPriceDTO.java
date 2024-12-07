@@ -7,7 +7,8 @@ import java.util.List;
 @Data
 public class GasPriceDTO {
     private String gasStationName;
-    private Integer gasStationId;
+    private String gasStationId;
+    private String normalStationId;
     private String gasLocation;
     private boolean isFollow;
     private double distance;
