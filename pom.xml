@@ -106,6 +106,12 @@
     </dependency>
 
     <dependency>
+      <groupId>com.alibaba</groupId>
+      <artifactId>fastjson</artifactId>
+      <version>2.0.31</version> <!-- 确保使用最新版本 -->
+    </dependency>
+
+    <dependency>
       <groupId>mysql</groupId>
       <artifactId>mysql-connector-java</artifactId>
       <version>8.0.33</version>  <!-- 确保使用适合的版本 -->

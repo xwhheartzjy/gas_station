@@ -15,10 +15,10 @@ public class GasStationDetailDTO {
     private String oil92PriceAvg;
     private String oil95PriceAvg;
     private String oil98PriceAvg;
-    private String livingCount;
+    private String uptownCount;
     private String officeCount;
-    private String businessCount;
-    private String housePrice;
+    private String businessCircleNumber;
+    private String averageRoomRate;
     private String rentPrice;
     private String totalResidents;
 

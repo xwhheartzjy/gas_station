@@ -8,8 +8,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.codec.common.RequestContext;
 import org.codec.dto.*;
 import org.codec.entity.*;
+import org.codec.entity.third.AreaReport;
 import org.codec.mapper.*;
 import org.codec.mapper.map_struct.GasStationMapStructMapper;
+import org.codec.mapper.thrid.AreaReportMapper;
 import org.codec.request.AddGasStationRequest;
 import org.codec.request.GasStationFlowRequest;
 import org.codec.util.HaversineUtil;
@@ -40,6 +42,8 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
     private GasStationMappingMapper gasStationMappingMapper;
     @Autowired
     private GasStationFlowMapper gasStationFlowMapper;
+    @Autowired
+    private AreaReportMapper areaReportMapper;
 
     public List<GasStationDTO> listStationByUser(String userId) {
         QueryWrapper<GasStationConsumer> queryWrapper = new QueryWrapper<>();
@@ -788,6 +792,16 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
 
             }
         }
+        QueryWrapper<AreaReport> areaReportQueryWrapper = new QueryWrapper<>();
+        areaReportQueryWrapper.eq("gas_station_id",gasStation.getStationId());
+        AreaReport areaReport = areaReportMapper.selectOne(areaReportQueryWrapper);
+        AreaReportSummaryDTO areaReportSummaryDTO = areaReportMapper.queryAreaSummary(areaReport.getId());
+        result.setBusinessCircleNumber(String.valueOf(areaReportSummaryDTO.getBusinessCircleNumber()));
+        result.setAverageRoomRate(String.valueOf(areaReportSummaryDTO.getAverageRoomRate()));
+        result.setUptownCount(String.valueOf(areaReportSummaryDTO.getUptownCount()));
+        result.setOfficeCount(String.valueOf(areaReportSummaryDTO.getOfficeBuildingCount()));
+        result.setTotalResidents(String.valueOf(areaReportSummaryDTO.getTotalHouseHold()));
+        result.setRentPrice(String.valueOf(areaReportSummaryDTO.getAverageRent()));
 
         result.setChart(chartDTO);
         result.setPlatformPriceList(platformPriceDTOS);
