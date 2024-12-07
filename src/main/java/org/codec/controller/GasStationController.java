@@ -83,4 +83,11 @@ public class GasStationController {
         return JsonData.buildSuccess(gasStationService.getStationNormalDetail(stationId,normalStationId,distanceType));
     }
 
+
+    @GetMapping("/init")
+    public JsonData init(@RequestParam(name = "user_id")String userId) {
+        gasStationService.init(userId);
+        return JsonData.buildSuccess();
+    }
+
 }

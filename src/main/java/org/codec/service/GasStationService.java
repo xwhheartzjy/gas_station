@@ -10,6 +10,8 @@ import org.codec.common.RequestContext;
 import org.codec.dto.*;
 import org.codec.entity.*;
 import org.codec.entity.third.AreaReport;
+import org.codec.enums.BizCodeEnum;
+import org.codec.exception.BizException;
 import org.codec.mapper.*;
 import org.codec.mapper.map_struct.GasStationMapStructMapper;
 import org.codec.mapper.thrid.AreaReportMapper;
@@ -23,6 +25,8 @@ import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -139,13 +143,14 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
 
 
     private List<GasGdPricingDaily> filterPricingList(List<OGasStation> stations) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         QueryWrapper<GasGdPricingDaily> queryWrapper = new QueryWrapper<>();
         List<Integer> stationIds = stations.stream()
                 .map(OGasStation::getId)
                 .collect(Collectors.toList());
         queryWrapper.in("oil_station_id", stationIds);
-//        queryWrapper.eq("pricing_date", DateUtil.date().toString("yyyy-MM-dd"));
-        queryWrapper.eq("pricing_date", "2024-10-07");
+        queryWrapper.eq("pricing_date", LocalDate.now().minusDays(1).format(formatter));
+//        queryWrapper.eq("pricing_date", "2024-10-07");
         return gasGdPricingDailyMapper.selectList(queryWrapper);
 
     }
@@ -174,27 +179,27 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
 
         double targetLat = targetStation.getLatitude().doubleValue();
         double targetLon = targetStation.getLongitude().doubleValue();
-        QueryWrapper<GasStationMapping> gasStationMappingQueryWrapper = new QueryWrapper<>();
-        gasStationMappingQueryWrapper.eq("original_station_id", targetStation.getOriginStation());
-        gasStationMappingQueryWrapper.eq("del_flag", 0);
-        GasStationMapping originGasStationMapping = gasStationMappingMapper.selectOne(gasStationMappingQueryWrapper);
 
         if ("distance".equals(orderBy)) {
             List<GasPriceDTO> gasPriceDTOS = generateHandleData(pageNo, size, gasolineType, sort, targetLat, targetLon, distance);
             Page<GasPriceDTO> r = new Page<>(pageNo, size);
-            r.setRecords(gasPriceDTOS);
+            r.setRecords(handleLowestPrice(gasolineType,gasPriceDTOS));
             return r;
         }
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         //根据price排序
         //获取价格数据
         Page<GasGdPricingDaily> page = new Page<>(pageNo, size);
-        List<OGasStation> stationsWithDistance = oGasStationMapper.findStationsWithDistance(targetLat, targetLon, distance * 1000);
+        List<OGasStation> stationsWithDistance = oGasStationMapper.findStationsWithDistance(targetLat, targetLon, distance);
         List<Integer> stationIds = stationsWithDistance.stream()
                 .map(OGasStation::getId)
                 .collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(stationIds)) {
+            return new Page<>(pageNo, size);
+        }
         Map<Integer, List<OGasStation>> collectStation = stationsWithDistance.stream().collect(Collectors.groupingBy(OGasStation::getId));
         Page<GasGdPricingDaily> gasGdPricingDailyIPage = gasGdPricingDailyMapper.selectPricingByStationAndType(page,
-                gasolineType, stationIds, "2024-10-07", sort);
+                gasolineType, stationIds, LocalDate.now().minusDays(1).format(formatter), sort);
         List<GasPriceDTO> result = new ArrayList<>();
         for (GasGdPricingDaily gasGdPricingDaily : gasGdPricingDailyIPage.getRecords()) {
             GasPriceDTO gasPriceDTO = new GasPriceDTO();
@@ -203,12 +208,21 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
                 continue;
             }
             gasPriceDTO.setGasStationId(String.valueOf(gasGdPricingDaily.getOilStationId()));
-            gasPriceDTO.setNormalStationId(String.valueOf(gasGdPricingDaily.getOilStationId()));
             gasPriceDTO.setGasLocation(oGasStations.get(0).getAddress());
             gasPriceDTO.setGasStationName(oGasStations.get(0).getName());
-            gasPriceDTO.setDistance(HaversineUtil.getDistance(targetLat, targetLon,
-                    Double.valueOf(oGasStations.get(0).getLat()), Double.valueOf(oGasStations.get(0).getLng())));
+            gasPriceDTO.setDistance(String.format("%.1f", HaversineUtil.getDistance(targetLat, targetLon,
+                    Double.valueOf(oGasStations.get(0).getLat()), Double.valueOf(oGasStations.get(0).getLng()))));
             gasPriceDTO.setGasStationType("normal");
+            gasPriceDTO.setLat(collectStation.get(gasGdPricingDaily.getOilStationId().intValue()).get(0).getLat());
+            gasPriceDTO.setLng(collectStation.get(gasGdPricingDaily.getOilStationId().intValue()).get(0).getLng());
+            gasPriceDTO.setFollow(false);
+            QueryWrapper<GasStationFlow> flowQueryWrapper = new QueryWrapper<>();
+            flowQueryWrapper.eq("gas_station_id", gasGdPricingDaily.getOilStationId());
+            flowQueryWrapper.eq("user_id", RequestContext.getCurrentUser().getUserId());
+            GasStationFlow gasStationFlow = gasStationFlowMapper.selectOne(flowQueryWrapper);
+            if (gasStationFlow != null) {
+                gasPriceDTO.setFollow(gasStationFlow.getFlow());
+            }
 
             List<GasInfoDTO> infoDTOS = new ArrayList<>();
             GasInfoDTO gasInfo0 = new GasInfoDTO();
@@ -220,10 +234,10 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
             GasInfoDTO gasInfo98 = new GasInfoDTO();
             gasInfo98.setGasType(98);
 //            if (CollectionUtil.isNotEmpty(dailies)){
-            gasInfo0.setGasPrice(String.format("%.2f",Double.valueOf(gasGdPricingDaily.getOil0())/100.0));
-            gasInfo92.setGasPrice(String.format("%.2f",Double.valueOf(gasGdPricingDaily.getOil92())/100.0));
-            gasInfo95.setGasPrice(String.format("%.2f",Double.valueOf(gasGdPricingDaily.getOil95())/100.0));
-            gasInfo98.setGasPrice(String.format("%.2f",Double.valueOf(gasGdPricingDaily.getOil98())/100.0));
+            gasInfo0.setGasPrice(String.format("%.2f", Double.valueOf(gasGdPricingDaily.getOil0()) / 100.0));
+            gasInfo92.setGasPrice(String.format("%.2f", Double.valueOf(gasGdPricingDaily.getOil92()) / 100.0));
+            gasInfo95.setGasPrice(String.format("%.2f", Double.valueOf(gasGdPricingDaily.getOil95()) / 100.0));
+            gasInfo98.setGasPrice(String.format("%.2f", Double.valueOf(gasGdPricingDaily.getOil98()) / 100.0));
 
 //            }
             infoDTOS.add(gasInfo0);
@@ -305,8 +319,10 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
             gasPriceDTO.setGasStationId(String.valueOf(oGasStation.getId()));
             gasPriceDTO.setGasLocation(oGasStation.getAddress());
             gasPriceDTO.setGasStationName(oGasStation.getName());
-            gasPriceDTO.setDistance(HaversineUtil.getDistance(targetLat, targetLon, Double.valueOf(oGasStation.getLat()), Double.valueOf(oGasStation.getLng())));
+            gasPriceDTO.setDistance(String.format("%.1f", HaversineUtil.getDistance(targetLat, targetLon, Double.valueOf(oGasStation.getLat()), Double.valueOf(oGasStation.getLng()))));
             gasPriceDTO.setGasStationType("normal");
+            gasPriceDTO.setLat(oGasStation.getLat());
+            gasPriceDTO.setLng(oGasStation.getLng());
             GasInfoDTO gasInfo0 = new GasInfoDTO();
             List<GasGdPricingDaily> dailies = collect.get(Long.valueOf(gasPriceDTO.getGasStationId()));
             List<GasInfoDTO> infoDTOS = new ArrayList<>();
@@ -317,13 +333,14 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
             gasInfo95.setGasType(95);
             GasInfoDTO gasInfo98 = new GasInfoDTO();
             gasInfo98.setGasType(98);
-            if (CollectionUtil.isNotEmpty(dailies)) {
-                gasInfo0.setGasPrice(String.format("%.2f",Double.valueOf(dailies.get(0).getOil0())/100.0));
-                gasInfo92.setGasPrice(String.format("%.2f",Double.valueOf(dailies.get(0).getOil92())/100.0));
-                gasInfo95.setGasPrice(String.format("%.2f",Double.valueOf(dailies.get(0).getOil95())/100.0));
-                gasInfo98.setGasPrice(String.format("%.2f",Double.valueOf(dailies.get(0).getOil98())/100.0));
-
+            if (CollectionUtil.isEmpty(dailies)) {
+                continue;
             }
+            gasInfo0.setGasPrice(String.format("%.2f", Double.valueOf(dailies.get(0).getOil0()) / 100.0));
+            gasInfo92.setGasPrice(String.format("%.2f", Double.valueOf(dailies.get(0).getOil92()) / 100.0));
+            gasInfo95.setGasPrice(String.format("%.2f", Double.valueOf(dailies.get(0).getOil95()) / 100.0));
+            gasInfo98.setGasPrice(String.format("%.2f", Double.valueOf(dailies.get(0).getOil98()) / 100.0));
+
             infoDTOS.add(gasInfo0);
             infoDTOS.add(gasInfo92);
             infoDTOS.add(gasInfo95);
@@ -339,6 +356,7 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         Page<GasPriceDTO> pageResult = new Page<>(pageNo, size);
         QueryWrapper<GasStationFlow> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
+        queryWrapper.eq("flow", true);
         if (!Objects.isNull(keyWord) && !keyWord.isEmpty()) {
             queryWrapper.like("gas_station_name", keyWord);
         }
@@ -360,12 +378,14 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
             gasPriceDTO.setGasStationName(gasStationFlow.getGasStationName());
             gasPriceDTO.setGasLocation(gasStationFlow.getAddress());
             gasPriceDTO.setGasStationId(String.valueOf(gasStationFlow.getGasStationId()));
+
             if (stationId != "") {
-                gasPriceDTO.setDistance(HaversineUtil.getDistance(targetLatitude, targetLongitude,
-                        Double.valueOf(gasStationFlow.getLat()), Double.valueOf(gasStationFlow.getLng())));
+                gasPriceDTO.setDistance(String.format("%.1f", HaversineUtil.getDistance(targetLatitude, targetLongitude,
+                        Double.valueOf(gasStationFlow.getLat()), Double.valueOf(gasStationFlow.getLng()))));
             }
             gasPriceDTO.setLat(gasStationFlow.getLat());
             gasPriceDTO.setLng(gasStationFlow.getLng());
+            gasPriceDTO.setFollow(gasStationFlow.getFlow());
 
             GasInfoDTO gasInfo0 = new GasInfoDTO();
             List<GasInfoDTO> infoDTOS = new ArrayList<>();
@@ -376,10 +396,18 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
             gasInfo95.setGasType(95);
             GasInfoDTO gasInfo98 = new GasInfoDTO();
             gasInfo98.setGasType(98);
-            gasInfo0.setGasPrice(String.format("%.2f",Double.valueOf(gasStationFlow.getOil0())/100.0));
-            gasInfo92.setGasPrice(String.format("%.2f",Double.valueOf(gasStationFlow.getOil92())/100.0));
-            gasInfo95.setGasPrice(String.format("%.2f",Double.valueOf(gasStationFlow.getOil95())/100.0));
-            gasInfo98.setGasPrice(String.format("%.2f",Double.valueOf(gasStationFlow.getOil98())/100.0));
+            if (gasStationFlow.getOil0() != null) {
+                gasInfo0.setGasPrice(String.format("%.2f", Double.valueOf(gasStationFlow.getOil0())));
+            }
+            if (gasStationFlow.getOil92() != null) {
+                gasInfo92.setGasPrice(String.format("%.2f", Double.valueOf(gasStationFlow.getOil92())));
+            }
+            if (gasStationFlow.getOil95() != null) {
+                gasInfo95.setGasPrice(String.format("%.2f", Double.valueOf(gasStationFlow.getOil95())));
+            }
+            if (gasStationFlow.getOil98() != null) {
+                gasInfo98.setGasPrice(String.format("%.2f", Double.valueOf(gasStationFlow.getOil98())));
+            }
             infoDTOS.add(gasInfo0);
             infoDTOS.add(gasInfo92);
             infoDTOS.add(gasInfo95);
@@ -426,9 +454,12 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         GasStationDetailDTO result = new GasStationDetailDTO();
         OGasStation oGasStation = oGasStationMapper.selectById(normalStationId);
         GasStationConsumer gasStation = gasStationConsumerMapper.selectById(stationId);
+        if (gasStation == null) {
+            throw new BizException(BizCodeEnum.STATION_EMPTY_ERROR);
+        }
         result.setGasStationName(gasStation.getName());
-        result.setDistance(HaversineUtil.getDistance(gasStation.getLatitude().doubleValue(), gasStation.getLongitude().doubleValue(),
-                Double.valueOf(oGasStation.getLat()), Double.valueOf(oGasStation.getLng())));
+        result.setDistance(String.format("%.1f", HaversineUtil.getDistance(gasStation.getLatitude().doubleValue(), gasStation.getLongitude().doubleValue(),
+                Double.valueOf(oGasStation.getLat()), Double.valueOf(oGasStation.getLng()))));
         result.setNormalGasStationName(oGasStation.getName());
 
         List<OGasStation> stationsWithDistance = oGasStationMapper.findStationsWithDistance(gasStation.getLatitude().doubleValue(),
@@ -461,10 +492,10 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
             stationPrice95 = stationPrice95 + (sourcePrices095 / values.size());
             stationPrice98 = stationPrice98 + (sourcePrices98 / values.size());
         }
-        result.setOil0PriceAvg(String.valueOf(stationPrice0 / collectByOStationId.size()));
-        result.setOil92PriceAvg(String.valueOf(stationPrice92 / collectByOStationId.size()));
-        result.setOil95PriceAvg(String.valueOf(stationPrice95 / collectByOStationId.size()));
-        result.setOil98PriceAvg(String.valueOf(stationPrice98 / collectByOStationId.size()));
+        result.setOil0PriceAvg(String.format("%.2f", (stationPrice0 / collectByOStationId.size()) / 100.0));
+        result.setOil92PriceAvg(String.format("%.2f", (stationPrice92 / collectByOStationId.size()) / 100.0));
+        result.setOil95PriceAvg(String.format("%.2f", (stationPrice95 / collectByOStationId.size()) / 100.0));
+        result.setOil98PriceAvg(String.format("%.2f", (stationPrice98 / collectByOStationId.size()) / 100.0));
         LocalDate today = LocalDate.now();
 
         // 获取 30 天前的日期
@@ -561,6 +592,21 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         result.setChart(chartDTO);
         result.setPlatformPriceList(platformPriceDTOS);
         return result;
+
+    }
+
+
+    public void init(String userId) {
+        QueryWrapper<GasStation> gasStationQueryWrapper = new QueryWrapper<>();
+        gasStationQueryWrapper.eq("del_flag", 0);
+        List<GasStation> gasStations = gasStationMapper.selectList(gasStationQueryWrapper);
+        for (GasStation gasStation : gasStations) {
+            GasStationConsumer gasStationConsumer = new GasStationConsumer();
+            BeanUtils.copyProperties(gasStation, gasStationConsumer);
+            gasStationConsumer.setOriginStation(gasStation.getStationId());
+            gasStationConsumer.setUserId(Long.valueOf(userId));
+            gasStationConsumerMapper.insert(gasStationConsumer);
+        }
 
     }
 

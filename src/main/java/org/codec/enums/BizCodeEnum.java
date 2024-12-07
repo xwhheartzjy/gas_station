@@ -15,6 +15,7 @@ public enum BizCodeEnum {
     CODE_LIMITED(240002,"验证码发送过快"),
     CODE_ERROR(240003,"验证码错误"),
     CODE_CAPTCHA_ERROR(240101,"图形验证码错误"),
+    STATION_EMPTY_ERROR(24010105,"加油站选择错误，加油站为空"),
 
     /**
      * 账号

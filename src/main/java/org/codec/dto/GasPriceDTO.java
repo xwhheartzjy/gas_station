@@ -8,10 +8,9 @@ import java.util.List;
 public class GasPriceDTO {
     private String gasStationName;
     private String gasStationId;
-    private String normalStationId;
     private String gasLocation;
     private boolean isFollow;
-    private double distance;
+    private String distance;
     private List<GasInfoDTO> gasStationNearbyPrice;
     private String gasStationType;
 

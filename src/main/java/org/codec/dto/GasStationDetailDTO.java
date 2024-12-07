@@ -8,7 +8,7 @@ import java.util.List;
 public class GasStationDetailDTO {
     private String normalGasStationName;
     private String gasStationName;
-    private Double distance;
+    private String distance;
     private List<PlatformPriceDTO> platformPriceList;
     private ChartDTO chart;
     private String oil0PriceAvg;
