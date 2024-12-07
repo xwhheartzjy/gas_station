@@ -302,7 +302,7 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         List<GasPriceDTO> r = new ArrayList<>();
         for (OGasStation oGasStation : stationsWithinDistance.getRecords()) {
             GasPriceDTO gasPriceDTO = new GasPriceDTO();
-            gasPriceDTO.setGasStationId(oGasStation.getId());
+            gasPriceDTO.setGasStationId(String.valueOf(oGasStation.getId()));
             gasPriceDTO.setGasLocation(oGasStation.getAddress());
             gasPriceDTO.setGasStationName(oGasStation.getName());
             gasPriceDTO.setDistance(HaversineUtil.getDistance(targetLat, targetLon, Double.valueOf(oGasStation.getLat()), Double.valueOf(oGasStation.getLng())));
@@ -359,7 +359,7 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
             gasPriceDTO.setGasStationType("normal");
             gasPriceDTO.setGasStationName(gasStationFlow.getGasStationName());
             gasPriceDTO.setGasLocation(gasStationFlow.getAddress());
-            gasPriceDTO.setGasStationId(gasStationFlow.getGasStationId().intValue());
+            gasPriceDTO.setGasStationId(String.valueOf(gasStationFlow.getGasStationId()));
             if (stationId != "") {
                 gasPriceDTO.setDistance(HaversineUtil.getDistance(targetLatitude, targetLongitude,
                         Double.valueOf(gasStationFlow.getLat()), Double.valueOf(gasStationFlow.getLng())));
