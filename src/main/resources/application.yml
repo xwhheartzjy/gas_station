@@ -17,10 +17,10 @@ jwt:
       com.baomidou.mybatisplus.core: DEBUG  # 打印 MyBatis-Plus 的日志
       org.mybatis: DEBUG                    # 打印 MyBatis 的日志
 server:
-  port: 8443
-  ssl:
-    key-store: classpath:keystore.jks
-    key-store-password: gas_station
-    key-alias: mykey
-    key-store-type: JKS
-    enabled-protocols: TLSv1.2, TLSv1.3
+  port: 9090
+#  ssl:
+#    key-store: classpath:keystore.jks
+#    key-store-password: gas_station
+#    key-alias: mykey
+#    key-store-type: JKS
+#    enabled-protocols: TLSv1.2, TLSv1.3

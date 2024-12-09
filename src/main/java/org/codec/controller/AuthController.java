@@ -38,11 +38,11 @@ public class AuthController {
         Map map = new HashMap();
         map.put("user",request.getUsername());
         map.put("password",request.getPassword());
-        map.put("userId","123456789");
+        map.put("userId","1857344673589280770");
         GasUserDTO gasUserDTO = new GasUserDTO();
         gasUserDTO.setToken(jwtTokenUtils.createToken(map));
         gasUserDTO.setUsername(request.getUsername());
-        gasUserDTO.setUserId("123456789");
+        gasUserDTO.setUserId("1857344673589280770");
         return JsonData.buildSuccess(gasUserDTO);
     }
 }

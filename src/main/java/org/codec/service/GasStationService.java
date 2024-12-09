@@ -581,13 +581,15 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         QueryWrapper<AreaReport> areaReportQueryWrapper = new QueryWrapper<>();
         areaReportQueryWrapper.eq("gas_station_id", gasStation.getOriginStation());
         AreaReport areaReport = areaReportMapper.selectOne(areaReportQueryWrapper);
-        AreaReportSummaryDTO areaReportSummaryDTO = areaReportMapper.queryAreaSummary(areaReport.getId());
-        result.setBusinessCircleNumber(String.valueOf(areaReportSummaryDTO.getBusinessCircleNumber()));
-        result.setAverageRoomRate(String.valueOf(areaReportSummaryDTO.getAverageRoomRate()));
-        result.setUptownCount(String.valueOf(areaReportSummaryDTO.getUptownCount()));
-        result.setOfficeCount(String.valueOf(areaReportSummaryDTO.getOfficeBuildingCount()));
-        result.setTotalResidents(String.valueOf(areaReportSummaryDTO.getTotalHouseHold()));
-        result.setRentPrice(String.valueOf(areaReportSummaryDTO.getAverageRent()));
+        if (areaReport != null) {
+            AreaReportSummaryDTO areaReportSummaryDTO = areaReportMapper.queryAreaSummary(areaReport.getId());
+            result.setBusinessCircleNumber(String.valueOf(areaReportSummaryDTO.getBusinessCircleNumber()));
+            result.setAverageRoomRate(String.valueOf(areaReportSummaryDTO.getAverageRoomRate()));
+            result.setUptownCount(String.valueOf(areaReportSummaryDTO.getUptownCount()));
+            result.setOfficeCount(String.valueOf(areaReportSummaryDTO.getOfficeBuildingCount()));
+            result.setTotalResidents(String.valueOf(areaReportSummaryDTO.getTotalHouseHold()));
+            result.setRentPrice(String.valueOf(areaReportSummaryDTO.getAverageRent()));
+        }
 
         result.setChart(chartDTO);
         result.setPlatformPriceList(platformPriceDTOS);
