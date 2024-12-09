@@ -121,6 +121,19 @@
       <artifactId>springdoc-openapi-ui</artifactId>
       <version>1.6.9</version>
     </dependency>
+    <!-- Sa-Token 整合 jwt -->
+    <dependency>
+      <groupId>cn.dev33</groupId>
+      <artifactId>sa-token-jwt</artifactId>
+      <version>1.39.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>cn.hutool</groupId>
+          <artifactId>hutool-all</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
   </dependencies>
   <!--module不用添加打包版本信息-->
   <build>

@@ -30,19 +30,19 @@ public class AuthController {
     @PostMapping("/login")
     public JsonData login(@RequestBody LoginRequest request) {
 
-//        SysUser user = sysUserService.getUserByUsernameAndPassword(request.getUsername(), request.getPassword());
-//        if (user == null) {
-//            return JsonData.buildResult(BizCodeEnum.ACCOUNT_PWD_ERROR);
-//        }
+        SysUser user = sysUserService.getUserByUsernameAndPassword(request.getUsername(), request.getPassword());
+        if (user == null) {
+            return JsonData.buildResult(BizCodeEnum.ACCOUNT_PWD_ERROR);
+        }
 
         Map map = new HashMap();
         map.put("user",request.getUsername());
         map.put("password",request.getPassword());
-        map.put("userId","1857344673589280770");
+        map.put("userId",user.getUserId());
         GasUserDTO gasUserDTO = new GasUserDTO();
         gasUserDTO.setToken(jwtTokenUtils.createToken(map));
         gasUserDTO.setUsername(request.getUsername());
-        gasUserDTO.setUserId("1857344673589280770");
+        gasUserDTO.setUserId(String.valueOf(user.getUserId()));
         return JsonData.buildSuccess(gasUserDTO);
     }
 }
