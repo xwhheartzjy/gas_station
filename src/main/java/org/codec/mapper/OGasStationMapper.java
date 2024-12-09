@@ -35,4 +35,15 @@ public interface OGasStationMapper extends BaseMapper<OGasStation> {
                                                  @Param("targetLat") Double targetLat,
                                                  @Param("targetLng") Double targetLng,
                                                  @Param("maxDistance") Double maxDistance);
+
+    @Select(
+            "SELECT id, name, address, lng, lat, ad_code, city_code, opening_status, source, created_at, tenant_id, " +
+                    "(6371 * acos(cos(radians(#{targetLat})) * cos(radians(lat)) * cos(radians(lng) - radians(#{targetLng})) + " +
+                    "sin(radians(#{targetLat})) * sin(radians(lat)))) AS distance " +
+                    "FROM o_gas_station " +
+                    "HAVING distance <= #{maxDistance} ")
+    Page<OGasStation> findStationsWithDistancePage(Page page,
+            @Param("targetLat") Double targetLat,
+            @Param("targetLng") Double targetLng,
+            @Param("maxDistance") Double maxDistance);
 }

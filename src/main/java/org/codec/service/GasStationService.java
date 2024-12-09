@@ -149,13 +149,13 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
                 .map(OGasStation::getId)
                 .collect(Collectors.toList());
         queryWrapper.in("oil_station_id", stationIds);
-        queryWrapper.eq("pricing_date", LocalDate.now().minusDays(1).format(formatter));
+        queryWrapper.eq("pricing_date", LocalDate.now().minusDays(2).format(formatter));
 //        queryWrapper.eq("pricing_date", "2024-10-07");
         return gasGdPricingDailyMapper.selectList(queryWrapper);
 
     }
 
-    public Page<GasPriceDTO> getGasStationsList2(Integer pageNo, Integer size,
+    public Page<GasPriceDTO> getGasStationsList(Integer pageNo, Integer size,
                                                  String stationId, Integer gasolineType,
                                                  Integer distanceType, String orderBy, String sort) {
         double distance;
@@ -180,76 +180,11 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         double targetLat = targetStation.getLatitude().doubleValue();
         double targetLon = targetStation.getLongitude().doubleValue();
 
-        if ("distance".equals(orderBy)) {
-            List<GasPriceDTO> gasPriceDTOS = generateHandleData(pageNo, size, gasolineType, sort, targetLat, targetLon, distance);
-            Page<GasPriceDTO> r = new Page<>(pageNo, size);
-            r.setRecords(handleLowestPrice(gasolineType,gasPriceDTOS));
-            return r;
-        }
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        //根据price排序
-        //获取价格数据
-        Page<GasGdPricingDaily> page = new Page<>(pageNo, size);
-        List<OGasStation> stationsWithDistance = oGasStationMapper.findStationsWithDistance(targetLat, targetLon, distance);
-        List<Integer> stationIds = stationsWithDistance.stream()
-                .map(OGasStation::getId)
-                .collect(Collectors.toList());
-        if (CollectionUtil.isEmpty(stationIds)) {
-            return new Page<>(pageNo, size);
-        }
-        Map<Integer, List<OGasStation>> collectStation = stationsWithDistance.stream().collect(Collectors.groupingBy(OGasStation::getId));
-        Page<GasGdPricingDaily> gasGdPricingDailyIPage = gasGdPricingDailyMapper.selectPricingByStationAndType(page,
-                gasolineType, stationIds, LocalDate.now().minusDays(1).format(formatter), sort);
-        List<GasPriceDTO> result = new ArrayList<>();
-        for (GasGdPricingDaily gasGdPricingDaily : gasGdPricingDailyIPage.getRecords()) {
-            GasPriceDTO gasPriceDTO = new GasPriceDTO();
-            List<OGasStation> oGasStations = collectStation.get(gasGdPricingDaily.getOilStationId().intValue());
-            if (CollectionUtil.isEmpty(oGasStations)) {
-                continue;
-            }
-            gasPriceDTO.setGasStationId(String.valueOf(gasGdPricingDaily.getOilStationId()));
-            gasPriceDTO.setGasLocation(oGasStations.get(0).getAddress());
-            gasPriceDTO.setGasStationName(oGasStations.get(0).getName());
-            gasPriceDTO.setDistance(String.format("%.1f", HaversineUtil.getDistance(targetLat, targetLon,
-                    Double.valueOf(oGasStations.get(0).getLat()), Double.valueOf(oGasStations.get(0).getLng()))));
-            gasPriceDTO.setGasStationType("normal");
-            gasPriceDTO.setLat(collectStation.get(gasGdPricingDaily.getOilStationId().intValue()).get(0).getLat());
-            gasPriceDTO.setLng(collectStation.get(gasGdPricingDaily.getOilStationId().intValue()).get(0).getLng());
-            gasPriceDTO.setFollow(false);
-            QueryWrapper<GasStationFlow> flowQueryWrapper = new QueryWrapper<>();
-            flowQueryWrapper.eq("gas_station_id", gasGdPricingDaily.getOilStationId());
-            flowQueryWrapper.eq("user_id", RequestContext.getCurrentUser().getUserId());
-            GasStationFlow gasStationFlow = gasStationFlowMapper.selectOne(flowQueryWrapper);
-            if (gasStationFlow != null) {
-                gasPriceDTO.setFollow(gasStationFlow.getFlow());
-            }
-
-            List<GasInfoDTO> infoDTOS = new ArrayList<>();
-            GasInfoDTO gasInfo0 = new GasInfoDTO();
-            gasInfo0.setGasType(0);
-            GasInfoDTO gasInfo92 = new GasInfoDTO();
-            gasInfo92.setGasType(92);
-            GasInfoDTO gasInfo95 = new GasInfoDTO();
-            gasInfo95.setGasType(95);
-            GasInfoDTO gasInfo98 = new GasInfoDTO();
-            gasInfo98.setGasType(98);
-//            if (CollectionUtil.isNotEmpty(dailies)){
-            gasInfo0.setGasPrice(String.format("%.2f", Double.valueOf(gasGdPricingDaily.getOil0()) / 100.0));
-            gasInfo92.setGasPrice(String.format("%.2f", Double.valueOf(gasGdPricingDaily.getOil92()) / 100.0));
-            gasInfo95.setGasPrice(String.format("%.2f", Double.valueOf(gasGdPricingDaily.getOil95()) / 100.0));
-            gasInfo98.setGasPrice(String.format("%.2f", Double.valueOf(gasGdPricingDaily.getOil98()) / 100.0));
-
-//            }
-            infoDTOS.add(gasInfo0);
-            infoDTOS.add(gasInfo92);
-            infoDTOS.add(gasInfo95);
-            infoDTOS.add(gasInfo98);
-            gasPriceDTO.setGasStationNearbyPrice(infoDTOS);
-            result.add(gasPriceDTO);
-        }
+        List<GasPriceDTO> gasPriceDTOS = generateHandleData(pageNo, size, gasolineType, sort, targetLat, targetLon, distance,orderBy);
         Page<GasPriceDTO> r = new Page<>(pageNo, size);
-        r.setRecords(handleLowestPrice(gasolineType, result));
+        r.setRecords(handleLowestPrice(gasolineType, gasPriceDTOS));
         return r;
+
     }
 
     private List<GasPriceDTO> handleLowestPrice(Integer gasolineType, List<GasPriceDTO> list) {
@@ -280,9 +215,9 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
 
     private List<GasPriceDTO> generateHandleData(Integer pageNo, Integer size, Integer gasolineType,
                                                  String sort, double targetLat, double targetLon,
-                                                 double distance) {
+                                                 double distance,String orderBy) {
         Page<OGasStation> page = new Page<>(pageNo, size);
-        Page<OGasStation> stationsWithinDistance = oGasStationMapper.findStationsWithinDistance(page, targetLat, targetLon, distance, sort);
+        Page<OGasStation> stationsWithinDistance = oGasStationMapper.findStationsWithDistancePage(page, targetLat, targetLon, distance);
         if (CollectionUtil.isEmpty(stationsWithinDistance.getRecords())) {
             return new ArrayList<>();
         }
@@ -348,8 +283,58 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
             gasPriceDTO.setGasStationNearbyPrice(infoDTOS);
             r.add(gasPriceDTO);
         }
+        sortGasPriceList(r, orderBy, sort, gasolineType);
         return r;
     }
+
+
+    private void sortGasPriceList(List<GasPriceDTO> gasPriceDTOList, String orderBy, String sort,Integer gasType) {
+        // 根据排序顺序选择正序或倒序
+        boolean isAscending = "asc".equalsIgnoreCase(sort);
+
+        // 排序的主逻辑
+        if ("distance".equalsIgnoreCase(orderBy)) {
+            // 按照距离排序
+            gasPriceDTOList.sort((dto1, dto2) -> {
+                int comparison = Double.compare(Double.parseDouble(dto1.getDistance()), Double.parseDouble(dto2.getDistance()));
+                return isAscending ? comparison : -comparison;
+            });
+        } else if ("price".equalsIgnoreCase(orderBy)) {
+            // 按照油品价格排序，根据gasType来判断优先级
+            gasPriceDTOList.sort((dto1, dto2) -> {
+                // 获取每个加油站的目标油品（根据gasType进行筛选）
+                GasInfoDTO price1 = getGasInfoByType(dto1, gasType); // 默认选择92类型的油品，您可以根据需要修改
+                GasInfoDTO price2 = getGasInfoByType(dto2, gasType);
+
+                if (price1 != null && price2 != null) {
+                    int comparison = Double.compare(Double.parseDouble(price1.getGasPrice()), Double.parseDouble(price2.getGasPrice()));
+                    return isAscending ? comparison : -comparison;
+                }
+                return 0; // 如果价格没有匹配的油品则认为相等
+            });
+        }
+    }
+
+    // 根据油品类型从GasPriceDTO中获取指定类型的GasInfoDTO
+    private GasInfoDTO getGasInfoByType(GasPriceDTO dto, Integer gasType) {
+        Integer type = 0;
+        if (gasType == 0) {
+            type = 0;
+        } else if (gasType == 1) {
+            type = 92;
+        } else if (gasType == 2) {
+            type = 95;
+        } else if (gasType == 3) {
+            type = 98;
+        }
+        for (GasInfoDTO gasInfoDTO : dto.getGasStationNearbyPrice()) {
+            if (gasInfoDTO.getGasType() == type) {
+                return gasInfoDTO;
+            }
+        }
+        return null;
+    }
+
 
     public Page<GasPriceDTO> getStationFlowList(Integer pageNo, Integer size, String keyWord, String userId, String stationId) {
         Page<GasStationFlow> page = new Page<>(pageNo, size);
@@ -507,10 +492,25 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         queryWrapper.orderByDesc("pricing_date");
 
         List<GasGdPricingDaily> gasGdPricingDailies = gasGdPricingDailyMapper.selectList(queryWrapper);
-        Map<Integer, List<GasGdPricingDaily>> collectBySource = gasGdPricingDailies.stream().collect(Collectors.groupingBy(GasGdPricingDaily::getSource));
+        List<String> days = generateDaysList();
 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        Map<Integer, List<GasGdPricingDaily>> collectBySource = gasGdPricingDailies.stream().collect(Collectors.groupingBy(GasGdPricingDaily::getSource));
+        Map<LocalDate, List<GasGdPricingDaily>> collectByDate = gasGdPricingDailies.stream().collect(Collectors.groupingBy(GasGdPricingDaily::getPricingDate));
         List<PlatformPriceDTO> platformPriceDTOS = new ArrayList<>();
         ChartDTO chartDTO = new ChartDTO();
+
+        for (String date : days) {
+            for (Map.Entry<LocalDate, List<GasGdPricingDaily>> entry : collectByDate.entrySet()) {
+                if (!entry.getKey().format(formatter).equals(date)) {
+                    continue;
+                }
+
+
+            }
+        }
+
+
 
         for (Map.Entry<Integer, List<GasGdPricingDaily>> entry : collectBySource.entrySet()) {
             Integer source = entry.getKey();
@@ -595,6 +595,20 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         result.setPlatformPriceList(platformPriceDTOS);
         return result;
 
+    }
+
+    private List<String> generateDaysList(){
+        List<String> dateList = new ArrayList<>();
+        LocalDate currentDate = LocalDate.now(); // 当前日期
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        // 从当前日期往前推30天
+        for (int i = 0; i < 30; i++) {
+            LocalDate date = currentDate.minusDays(i);
+            dateList.add(date.format(formatter)); // 格式化为 yyyy-MM-dd 并添加到列表
+        }
+
+        return dateList;
     }
 
 
