@@ -6,7 +6,7 @@ import java.util.List;
 
 @Data
 public class ChartData {
-    private List<Integer> xAxis;
+    private List<String> xAxis;
     private List<ChartValue> value;
 
 }
