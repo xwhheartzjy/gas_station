@@ -23,8 +23,9 @@ public class NotifyController {
     private GasStationService gasStationService;
 
     @GetMapping("/check")
-    public JsonData check(@RequestParam(name = "gas_station_id",required = true) String gasStationId) {
+    public JsonData check(@RequestParam(name = "gas_station_id",required = true) String gasStationId,
+                          @RequestParam(name = "user_id",required = true) String userId) {
 
-        return JsonData.buildSuccess(gasStationService.checkPricing(gasStationId));
+        return JsonData.buildSuccess(gasStationService.checkPricing(gasStationId,userId));
     }
 }

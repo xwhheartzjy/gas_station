@@ -654,10 +654,17 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
 
     }
 
-    public NotifyDTO checkPricing(String gasStationId) {
+    public NotifyDTO checkPricing(String gasStationId,String userId) {
         NotifyDTO notifyDTO = new NotifyDTO();
         notifyDTO.setNeedNotify(false);
-        GasStationConsumer gasStationConsumer = gasStationConsumerMapper.selectById(gasStationId);
+        QueryWrapper<GasStationConsumer> gasStationConsumerQueryWrapper = new QueryWrapper<>();
+        gasStationConsumerQueryWrapper.eq("id", gasStationId);
+        gasStationConsumerQueryWrapper.eq("user_id", userId);
+        gasStationConsumerQueryWrapper.eq("del_flag", 0);
+        GasStationConsumer gasStationConsumer = gasStationConsumerMapper.selectOne(gasStationConsumerQueryWrapper);
+        if (gasStationConsumer == null) {
+            return notifyDTO;
+        }
         if (gasStationConsumer.getOriginStation() == null) {
             return notifyDTO;
         }
