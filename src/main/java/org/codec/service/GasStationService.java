@@ -149,7 +149,7 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
                 .map(OGasStation::getId)
                 .collect(Collectors.toList());
         queryWrapper.in("oil_station_id", stationIds);
-        queryWrapper.eq("pricing_date", LocalDate.now().minusDays(2).format(formatter));
+        queryWrapper.eq("pricing_date", LocalDate.now().minusDays(3).format(formatter));
 //        queryWrapper.eq("pricing_date", "2024-10-07");
         return gasGdPricingDailyMapper.selectList(queryWrapper);
 
@@ -188,6 +188,16 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
     }
 
     private List<GasPriceDTO> handleLowestPrice(Integer gasolineType, List<GasPriceDTO> list) {
+        Integer type = 0;
+        if (gasolineType == 0) {
+            type = 0;
+        } else if (gasolineType == 1) {
+            type = 92;
+        } else if (gasolineType == 2) {
+            type = 95;
+        } else if (gasolineType == 3) {
+            type = 98;
+        }
         // 初始化变量
         GasPriceDTO minPriceOuterObject = null;
         double minPrice = Double.MAX_VALUE;
@@ -197,7 +207,7 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
             if (gasPriceDTO.getGasStationNearbyPrice() != null) {
                 for (GasInfoDTO gasInfoDTO : gasPriceDTO.getGasStationNearbyPrice()) {
                     // 检查是否符合目标 type 并更新最小 price
-                    if (gasInfoDTO.getGasType() == gasolineType && Double.valueOf(gasInfoDTO.getGasPrice()) < minPrice) {
+                    if (gasInfoDTO.getGasType() == type && Double.valueOf(gasInfoDTO.getGasPrice()) < minPrice) {
                         minPrice = Double.valueOf(gasInfoDTO.getGasPrice());
                         minPriceOuterObject = gasPriceDTO;
                     }
