@@ -142,14 +142,14 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
     }
 
 
-    private List<GasGdPricingDaily> filterPricingList(List<OGasStation> stations) {
+    private List<GasGdPricingDaily> filterPricingList(List<OGasStation> stations,LocalDate date) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         QueryWrapper<GasGdPricingDaily> queryWrapper = new QueryWrapper<>();
         List<Integer> stationIds = stations.stream()
                 .map(OGasStation::getId)
                 .collect(Collectors.toList());
         queryWrapper.in("oil_station_id", stationIds);
-        queryWrapper.eq("pricing_date", LocalDate.now().format(formatter));
+        queryWrapper.eq("pricing_date", date.format(formatter));
         return gasGdPricingDailyMapper.selectList(queryWrapper);
 
     }
@@ -231,7 +231,10 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
             return new ArrayList<>();
         }
         //获取价格数据
-        List<GasGdPricingDaily> gasGdPricingDailies = filterPricingList(stationsWithinDistance.getRecords());
+        List<GasGdPricingDaily> gasGdPricingDailies = filterPricingList(stationsWithinDistance.getRecords(),LocalDate.now());
+        if (CollectionUtil.isEmpty(gasGdPricingDailies)) {
+            gasGdPricingDailies = filterPricingList(stationsWithinDistance.getRecords(), LocalDate.now().minusDays(1));
+        }
         // 按oil_station_id分组
         Map<Long, List<GasGdPricingDaily>> groupedByStations = gasGdPricingDailies.stream()
                 .collect(Collectors.groupingBy(GasGdPricingDaily::getOilStationId));
