@@ -232,7 +232,7 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
                                                  String sort, double targetLat, double targetLon,
                                                  double distance, String orderBy) {
         Page<OGasStation> page = new Page<>(pageNo, size);
-        Page<OGasStation> stationsWithinDistance = oGasStationMapper.findStationsWithDistancePage(page, targetLat, targetLon, distance);
+        Page<OGasStation> stationsWithinDistance = oGasStationMapper.findStationsWithDistance2Page(page, targetLat, targetLon, distance*1000);
         if (CollectionUtil.isEmpty(stationsWithinDistance.getRecords())) {
             logger.error("nearby has no station.distance:{},targetLat:{},targetLon:{},userId:{}",distance,targetLat,targetLon,RequestContext.getCurrentUser().getUserId());
             return new ArrayList<>();
@@ -528,7 +528,7 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         PlatformPriceDTO platformPriceDTO98 = new PlatformPriceDTO();
         platformPriceDTO98.setPriceType("98#");
         for (GasGdPricingDaily gasGdPricingDaily : gasGdPricingDailies) {
-            if (!gasGdPricingDaily.getPricingDate().isEqual(LocalDate.now())) {
+            if (!gasGdPricingDaily.getPricingDate().isEqual(LocalDate.now()) && gasGdPricingDaily.getPricingDate().isEqual(LocalDate.now().minusDays(1))) {
                 continue;
             }
             if (gasGdPricingDaily.getSource() == 3) {
