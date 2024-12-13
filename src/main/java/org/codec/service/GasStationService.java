@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.codec.common.RequestContext;
+import org.codec.controller.GasStationController;
 import org.codec.dto.*;
 import org.codec.entity.*;
 import org.codec.entity.third.AreaReport;
@@ -18,6 +19,8 @@ import org.codec.mapper.thrid.AreaReportMapper;
 import org.codec.request.AddGasStationRequest;
 import org.codec.request.GasStationFlowRequest;
 import org.codec.util.HaversineUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,6 +35,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class GasStationService extends ServiceImpl<GasStationMapper, GasStation> {
+    private static final Logger logger = LoggerFactory.getLogger(GasStationService.class);
     @Autowired
     private GasGdPricingDailyMapper gasGdPricingDailyMapper;
     @Autowired
@@ -170,9 +174,11 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         // 1. 获取目标加油站的经纬度
         GasStationConsumer targetStation = gasStationConsumerMapper.selectById(stationId);
         if (targetStation == null) {
+            logger.error("targetStation is null,stationId:{},userId:{}",stationId,RequestContext.getCurrentUser().getUserId());
             return new Page<>(pageNo, size);
         }
         if (targetStation.getOriginStation() == null) {
+            logger.error("station has not origin station,stationId:{},userId:{}",stationId,RequestContext.getCurrentUser().getUserId());
             return new Page<>(pageNo, size);
         }
 
@@ -228,11 +234,13 @@ public class GasStationService extends ServiceImpl<GasStationMapper, GasStation>
         Page<OGasStation> page = new Page<>(pageNo, size);
         Page<OGasStation> stationsWithinDistance = oGasStationMapper.findStationsWithDistancePage(page, targetLat, targetLon, distance);
         if (CollectionUtil.isEmpty(stationsWithinDistance.getRecords())) {
+            logger.error("nearby has no station.distance:{},targetLat:{},targetLon:{},userId:{}",distance,targetLat,targetLon,RequestContext.getCurrentUser().getUserId());
             return new ArrayList<>();
         }
         //获取价格数据
         List<GasGdPricingDaily> gasGdPricingDailies = filterPricingList(stationsWithinDistance.getRecords(),LocalDate.now());
         if (CollectionUtil.isEmpty(gasGdPricingDailies)) {
+            logger.info("price data current day has no data,userId:{}",RequestContext.getCurrentUser().getUserId());
             gasGdPricingDailies = filterPricingList(stationsWithinDistance.getRecords(), LocalDate.now().minusDays(1));
         }
         // 按oil_station_id分组

@@ -8,12 +8,15 @@ import org.codec.request.DeleteGasStationRequest;
 import org.codec.request.GasStationFlowRequest;
 import org.codec.service.GasStationService;
 import org.codec.util.JsonData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/gas_station")
 public class GasStationController {
+    private static final Logger logger = LoggerFactory.getLogger(GasStationController.class);
 
     @Autowired
     private GasStationService gasStationService;
