@@ -11,7 +11,7 @@ jwt:
       com.baomidou.mybatisplus.core: DEBUG  # 打印 MyBatis-Plus 的日志
       org.mybatis: DEBUG                    # 打印 MyBatis 的日志
 server:
-  port: 9090
+  port: 9091
 #  ssl:
 #    key-store: classpath:keystore.jks
 #    key-store-password: gas_station
@@ -22,9 +22,9 @@ spring:
   datasource:
     druid:
       driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://111.230.34.189:3306/gas_station?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
-      username: root
-      password: root
+      url: jdbc:mysql://192.168.0.66:3306/gas_station?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+      username: ops
+      password: m19*Y1P202407
       initial-size: 10               # 初始化连接数
       max-active: 50                 # 最大连接数，视需求调整
       min-idle: 10                   # 最小空闲连接数
